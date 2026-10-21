@@ -10,8 +10,8 @@ final class CalendarDates {
     private static final double SYNODIC_MONTH_MS = 29.53058867 * 24d * 60d * 60d * 1000d;
     private static final String[] MOON_SYMBOLS = {"🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"};
     private static final String[] MOON_NAMES = {
-            "New moon", "", "", "",
-            "Full moon", "", "", ""
+            "Yeni ay", "", "", "",
+            "Dolunay", "", "", ""
     };
 
     private CalendarDates() { }

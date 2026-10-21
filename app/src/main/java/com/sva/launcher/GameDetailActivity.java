@@ -79,16 +79,16 @@ public final class GameDetailActivity extends MotionActivity {
         eyebrow.setLetterSpacing(.18f);
         copy.addView(eyebrow);
         TextView title = GameUi.text(this, game.title, 38, true); title.setMaxLines(2); title.setEllipsize(android.text.TextUtils.TruncateAt.END); LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, -2); titleParams.topMargin = GameUi.dp(this, 16); copy.addView(title, titleParams);
-        Button play = GameUi.button(this, "Play"); play.setOnClickListener(v -> play());
+        Button play = GameUi.button(this, "Oyna"); play.setOnClickListener(v -> play());
         LinearLayout.LayoutParams playParams = new LinearLayout.LayoutParams(GameUi.dp(this, 240), GameUi.dp(this, 64));
         playParams.setMargins(GameUi.dp(this, 4), GameUi.dp(this, 38), GameUi.dp(this, 4), GameUi.dp(this, 4));
         copy.addView(play, playParams);
         actions = new LinearLayout(this);
         actions.setClipChildren(false); actions.setClipToPadding(false);
         LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(-1, GameUi.dp(this, 56)); actionsParams.topMargin = GameUi.dp(this, 18); copy.addView(actions, actionsParams);
-        addAction("Rename", this::rename);
-        addAction("Artwork", this::pickArtwork);
-        addAction("Remove", this::remove);
+        addAction("Yeniden adlandır", this::rename);
+        addAction("Kapak görseli", this::pickArtwork);
+        addAction("Kaldır", this::remove);
         root.addView(copy, new LinearLayout.LayoutParams(0, -2, 1f)); setContentView(root); play.requestFocus();
     }
 
@@ -153,10 +153,10 @@ public final class GameDetailActivity extends MotionActivity {
 
     private void rename() {
         EditText input = new EditText(this); input.setText(game.title); input.setSelectAllOnFocus(true);
-        AlertDialog dialog = new AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this)).setTitle("Game title").setView(input).setPositiveButton("Save", (d, w) -> {
+        AlertDialog dialog = new AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this)).setTitle("Oyun adı").setView(input).setPositiveButton("Kaydet", (d, w) -> {
             String value = input.getText().toString().trim(); if (value.isEmpty()) return;
-            try { repository.updateTitle(id, value); render(); } catch (Exception e) { Toast.makeText(this, "Could not save title.", Toast.LENGTH_LONG).show(); }
-        }).setNegativeButton("Cancel", null).create();
+            try { repository.updateTitle(id, value); render(); } catch (Exception e) { Toast.makeText(this, "Ad kaydedilemedi.", Toast.LENGTH_LONG).show(); }
+        }).setNegativeButton("İptal", null).create();
         Motion.dialog(dialog); dialog.show();
     }
 
@@ -168,14 +168,14 @@ public final class GameDetailActivity extends MotionActivity {
         super.onActivityResult(request, result, data);
         if (request != PICK_ART || result != RESULT_OK || data == null || data.getData() == null) return;
         try { repository.updateArtwork(id, data.getData()); render(); }
-        catch (Exception e) { Toast.makeText(this, "Could not save artwork.", Toast.LENGTH_LONG).show(); }
+        catch (Exception e) { Toast.makeText(this, "Kapak görseli kaydedilemedi.", Toast.LENGTH_LONG).show(); }
     }
 
     private void remove() {
-        AlertDialog dialog = new AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this)).setTitle("Remove " + game.title + "?")
-                .setMessage("Sva's imported copy, artwork, and battery save will be deleted. Your original file will not be changed.")
-                .setPositiveButton("Remove", (d, w) -> { try { repository.remove(id); finish(); } catch (Exception e) { Toast.makeText(this, "Could not remove game.", Toast.LENGTH_LONG).show(); } })
-                .setNegativeButton("Cancel", null).create();
+        AlertDialog dialog = new AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this)).setTitle("Kaldır: " + game.title + "?")
+                .setMessage("Sva’nın içe aktardığı kopya, kapak görseli ve kayıt verisi silinecek. Özgün dosyanıza dokunulmaz.")
+                .setPositiveButton("Kaldır", (d, w) -> { try { repository.remove(id); finish(); } catch (Exception e) { Toast.makeText(this, "Oyun kaldırılamadı.", Toast.LENGTH_LONG).show(); } })
+                .setNegativeButton("İptal", null).create();
         Motion.dialog(dialog); dialog.show();
     }
 }

@@ -104,19 +104,19 @@ public final class GuideActivity extends MotionActivity {
         setContentView(page);
         toolbar = new LinearLayout(this); toolbar.setGravity(Gravity.CENTER_VERTICAL);
         toolbar.setClipChildren(false); toolbar.setClipToPadding(false);
-        backButton = button("‹", "Back to Live TV"); backButton.setOnClickListener(v -> finish());
+        backButton = button("‹", "Canlı TV’ye dön"); backButton.setOnClickListener(v -> finish());
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(dp(48), dp(42));
         backParams.setMargins(dp(2), dp(2), dp(2), dp(2));
         toolbar.addView(backButton, backParams);
-        TextView heading = text("TV guide", 26, LiquidTheme.text(this));
+        TextView heading = text("TV rehberi", 26, LiquidTheme.text(this));
         LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(0, -2, 1);
         headingParams.leftMargin = dp(16); toolbar.addView(heading, headingParams);
-        categoryButton = button("All channels  ▾", "Choose channel category");
+        categoryButton = button("Tüm kanallar  ▾", "Kanal kategorisi seçin");
         categoryButton.setOnClickListener(v -> chooseCategory());
         LinearLayout.LayoutParams categoryParams = new LinearLayout.LayoutParams(dp(190), dp(42));
         categoryParams.setMargins(dp(4), dp(2), dp(4), dp(2));
         toolbar.addView(categoryButton, categoryParams);
-        nowButton = button("Now", "Return to current programme"); nowButton.setOnClickListener(v -> jumpNow());
+        nowButton = button("Şimdi", "Şu anki programa dön"); nowButton.setOnClickListener(v -> jumpNow());
         LinearLayout.LayoutParams nowParams = new LinearLayout.LayoutParams(dp(76), dp(42));
         nowParams.setMargins(dp(10), dp(2), dp(4), dp(2));
         toolbar.addView(nowButton, nowParams);
@@ -127,9 +127,9 @@ public final class GuideActivity extends MotionActivity {
         LinearLayout detail = new LinearLayout(this); details = detail; detail.setOrientation(LinearLayout.VERTICAL);
         detail.setPadding(dp(20), dp(10), dp(20), dp(10));
         detail.setBackground(shape(LiquidTheme.surface(this), LiquidTheme.border(this), 1, 16));
-        metadata = text("YOUR TV SCHEDULE", 11, LiquidTheme.accent(this)); metadata.setSingleLine(true);
+        metadata = text("TV YAYIN AKIŞINIZ", 11, LiquidTheme.accent(this)); metadata.setSingleLine(true);
         detail.addView(metadata, new LinearLayout.LayoutParams(-1, dp(19)));
-        title = text("Loading your channels…", 23, LiquidTheme.text(this)); title.setSingleLine(true);
+        title = text("Kanallarınız yükleniyor…", 23, LiquidTheme.text(this)); title.setSingleLine(true);
         detail.addView(title, new LinearLayout.LayoutParams(-1, dp(33)));
         LinearLayout lower = new LinearLayout(this); lower.setGravity(Gravity.CENTER_VERTICAL);
         actionHint = text("", 12, LiquidTheme.secondaryText(this)); actionHint.setSingleLine(true);
@@ -149,10 +149,10 @@ public final class GuideActivity extends MotionActivity {
         list.setPadding(dp(4), dp(4), dp(4), dp(4)); list.setClipToPadding(false);
         list.setFocusable(false);
         adapter = new Rows(); list.setAdapter(adapter); grid.addView(list, new FrameLayout.LayoutParams(-1, -1));
-        empty = text("Loading channels…", 17, LiquidTheme.secondaryText(this)); empty.setGravity(Gravity.CENTER);
+        empty = text("Kanallar yükleniyor…", 17, LiquidTheme.secondaryText(this)); empty.setGravity(Gravity.CENTER);
         grid.addView(empty, new FrameLayout.LayoutParams(-1, -1));
         page.addView(grid, new LinearLayout.LayoutParams(-1, 0, 1));
-        TextView help = text("↑↓ Channels     ←→ Schedule     OK Watch / reminders     Back Live TV", 11, LiquidTheme.secondaryText(this));
+        TextView help = text("↑↓ Kanallar     ←→ Akış     OK İzle / hatırlatıcılar     Geri Canlı TV", 11, LiquidTheme.secondaryText(this));
         help.setGravity(Gravity.CENTER_VERTICAL); page.addView(help, new LinearLayout.LayoutParams(-1, dp(28)));
     }
 
@@ -227,7 +227,7 @@ public final class GuideActivity extends MotionActivity {
         }
     }
 
-    private static String group(IptvRepository.Channel channel) { return channel.group.trim().isEmpty() ? "Uncategorized" : channel.group.trim(); }
+    private static String group(IptvRepository.Channel channel) { return channel.group.trim().isEmpty() ? "Kategorisiz" : channel.group.trim(); }
     private static String key(IptvRepository.Channel channel) { return channel.stableKey() + "\n" + channel.streamUrl; }
     private void filter(boolean focusGrid) {
         slotCache.clear();
@@ -241,11 +241,11 @@ public final class GuideActivity extends MotionActivity {
         selectedRow = 0;
         for (int i = 0; i < channels.size(); i++) if (key(channels.get(i)).equals(selectedKey)) { selectedRow = i; break; }
         if (!channels.isEmpty()) selectedKey = key(channels.get(selectedRow));
-        String label = category == null ? "All channels" : (FavoriteChannels.CATEGORY_FAVORITES.equals(category) ? "★ " + category : category);
+        String label = category == null ? "Tüm kanallar" : (FavoriteChannels.CATEGORY_FAVORITES.equals(category) ? "★ " + category : category);
         categoryButton.setText(label + "  ▾");
-        categoryButton.setContentDescription("Category: " + label);
+        categoryButton.setContentDescription("Kategori: " + label);
         empty.setVisibility(channels.isEmpty() ? View.VISIBLE : View.GONE);
-        empty.setText("No visible channels. Add a playlist or restore hidden channels in Settings.");
+        empty.setText("Görünür kanal yok. Ayarlar’dan bir liste ekleyin veya gizli kanalları geri getirin.");
         list.setVisibility(channels.isEmpty() ? View.GONE : View.VISIBLE);
         adapter.notifyDataSetChanged(); ruler.invalidate(); updateDetails();
         if (focusGrid && !channels.isEmpty()) focusSelection();
@@ -254,16 +254,16 @@ public final class GuideActivity extends MotionActivity {
 
     private void chooseCategory() {
         List<String> labels = new ArrayList<>();
-        labels.add("All channels");
+        labels.add("Tüm kanallar");
         for (String cat : categories) {
             labels.add(FavoriteChannels.CATEGORY_FAVORITES.equals(cat) ? "★ " + cat : cat);
         }
         int checked = category == null ? 0 : categories.indexOf(category) + 1;
         AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(this, LiquidTheme.alertDialogTheme(this)))
-                .setTitle("Channel category").setSingleChoiceItems(labels.toArray(new String[0]), checked, (d, which) -> {
+                .setTitle("Kanal kategorisi").setSingleChoiceItems(labels.toArray(new String[0]), checked, (d, which) -> {
                     category = which == 0 ? null : categories.get(which - 1); selectedKey = null;
                     channelFocused = false; d.dismiss(); filter(true); Motion.reveal(list);
-                }).setNegativeButton("Cancel", null).create();
+                }).setNegativeButton("İptal", null).create();
         showDialog(dialog);
     }
 
@@ -461,21 +461,21 @@ public final class GuideActivity extends MotionActivity {
     }
     private void updateDetailsContent() {
         if (channels.isEmpty()) {
-            title.setText(loaded ? "Your guide is ready when you are" : "Loading your channels…");
-            metadata.setText("TV GUIDE"); actionHint.setText("Configure Live TV sources in Settings"); progress.setVisibility(View.GONE); return;
+            title.setText(loaded ? "Rehberiniz hazır olduğunda burada" : "Kanallarınız yükleniyor…");
+            metadata.setText("TV REHBERİ"); actionHint.setText("Canlı TV kaynaklarını Ayarlar’dan yapılandırın"); progress.setVisibility(View.GONE); return;
         }
         IptvRepository.Channel channel = channels.get(selectedRow);
         GuideTimeline.Slot slot = selectedSlot(); IptvRepository.Programme p = channelFocused ? null : slot.programme;
         long now = System.currentTimeMillis();
         if (p == null) {
-            metadata.setText(channel.name + "  ·  " + (channelFocused ? "LIVE TV" : "SCHEDULE UNAVAILABLE"));
-            title.setText(channelFocused ? channel.name : "No programme information");
-            actionHint.setText("Press OK to watch this channel"); progress.setVisibility(View.GONE);
+            metadata.setText(channel.name + "  ·  " + (channelFocused ? "CANLI TV" : "YAYIN AKIŞI YOK"));
+            title.setText(channelFocused ? channel.name : "Program bilgisi yok");
+            actionHint.setText("Bu kanalı izlemek için OK tuşuna basın"); progress.setVisibility(View.GONE);
         } else {
             boolean live = p.startMs <= now && p.endMs > now;
-            metadata.setText((live ? "● LIVE NOW" : p.endMs <= now ? "ENDED" : "UPCOMING") + "  ·  " + channel.name);
+            metadata.setText((live ? "● ŞİMDİ CANLI" : p.endMs <= now ? "BİTTİ" : "YAKLAŞAN") + "  ·  " + channel.name);
             title.setText(p.title);
-            actionHint.setText(range(p) + (p.startMs <= now ? "  ·  OK to watch channel" : reminded(channel, p) ? "  ·  Reminder set" : "  ·  OK for reminders"));
+            actionHint.setText(range(p) + (p.startMs <= now ? "  ·  Kanalı izlemek için OK" : reminded(channel, p) ? "  ·  Hatırlatıcı kuruldu" : "  ·  Hatırlatıcılar için OK"));
             progress.setVisibility(live ? View.VISIBLE : View.GONE);
             if (live) progress.setProgress((int)Math.max(0, Math.min(1000, (now - p.startMs) * 1000 / Math.max(1, p.endMs - p.startMs))));
         }
@@ -487,13 +487,13 @@ public final class GuideActivity extends MotionActivity {
         if (p == null || p.startMs <= System.currentTimeMillis()) { PlaybackLauncher.watch(this, channel, all); return; }
         boolean saved = reminded(channel, p);
         AlertDialog dialog = new AlertDialog.Builder(new ContextThemeWrapper(this, LiquidTheme.alertDialogTheme(this)))
-                .setTitle(p.title).setMessage(channel.name + "\n" + range(p) + "\n\nReminders appear five minutes before the show while Sva is open.")
-                .setPositiveButton(saved ? "Remove reminder" : "Remind me", (d, which) -> {
+                .setTitle(p.title).setMessage(channel.name + "\n" + range(p) + "\n\nHatırlatıcılar, Sva açıkken programdan beş dakika önce görünür.")
+                .setPositiveButton(saved ? "Hatırlatıcıyı kaldır" : "Hatırlat", (d, which) -> {
                     if (saved) reminders.remove(reminder(channel, p));
-                    else if (!reminders.add(reminder(channel, p))) Toast.makeText(this, "This programme has already started.", Toast.LENGTH_SHORT).show();
+                    else if (!reminders.add(reminder(channel, p))) Toast.makeText(this, "Bu program zaten başladı.", Toast.LENGTH_SHORT).show();
                     updateDetails(); refreshBadges();
-                }).setNeutralButton("Watch channel", (d, which) -> PlaybackLauncher.watch(this, channel, all))
-                .setNegativeButton("Cancel", null).create();
+                }).setNeutralButton("Kanalı izle", (d, which) -> PlaybackLauncher.watch(this, channel, all))
+                .setNegativeButton("İptal", null).create();
         showDialog(dialog);
     }
     private void showDialog(AlertDialog dialog) {
@@ -554,7 +554,7 @@ public final class GuideActivity extends MotionActivity {
             fallback.setText(c.name.isEmpty() ? "TV" : c.name.substring(0, 1).toUpperCase(Locale.getDefault()));
             logos.load(c.logoUrl, logo, fallback);
             configure(channel, new Target(position, null));
-            channel.setContentDescription("Watch " + c.name + (isFav ? ", favourite" : ""));
+            channel.setContentDescription("İzle: " + c.name + (isFav ? ", favori" : ""));
             int childIndex = 0;
             for (GuideTimeline.Slot slot : slots(position)) {
                 if (slot.end <= renderFrom || slot.start >= renderTo) continue;
@@ -591,7 +591,7 @@ public final class GuideActivity extends MotionActivity {
                 IptvRepository.Channel c = channels.get(target.row);
                 boolean added = FavoriteChannels.toggle(favoriteKeys, c);
                 FavoriteChannels.save(getSharedPreferences("launcher", 0), favoriteKeys);
-                Toast.makeText(GuideActivity.this, (added ? "Added to" : "Removed from") + " favourites: " + c.name, Toast.LENGTH_SHORT).show();
+                Toast.makeText(GuideActivity.this, (added ? "Eklendi:" : "Kaldırıldı:") + " favoriler: " + c.name, Toast.LENGTH_SHORT).show();
                 updateFavoriteCategoryList();
                 adapter.notifyItemChanged(target.row);
                 if (FavoriteChannels.CATEGORY_FAVORITES.equals(category)) {
@@ -605,19 +605,19 @@ public final class GuideActivity extends MotionActivity {
     private void updateTile(TextView tile, Target target) {
         IptvRepository.Programme p = target.slot.programme;
         if (p == null) {
-            String label = tile.getMeasuredWidth() > 0 && tile.getMeasuredWidth() < dp(70) ? "" : "No schedule";
+            String label = tile.getMeasuredWidth() > 0 && tile.getMeasuredWidth() < dp(70) ? "" : "Yayın akışı yok";
             if (!label.contentEquals(tile.getText())) tile.setText(label);
             tile.setTextColor(LiquidTheme.secondaryText(this));
-            tile.setContentDescription("Schedule unavailable on " + channels.get(target.row).name + ". Press OK to watch.");
+            tile.setContentDescription("Yayın akışı yok: " + channels.get(target.row).name + ". İzlemek için OK tuşuna basın.");
         } else {
             long now = System.currentTimeMillis();
             boolean live = p.startMs <= now && p.endMs > now;
-            String status = live ? "● LIVE" : reminded(channels.get(target.row), p) ? "◷ REMINDER" : time(p.startMs);
+            String status = live ? "● CANLI" : reminded(channels.get(target.row), p) ? "◷ HATIRLATICI" : time(p.startMs);
             int width = tile.getMeasuredWidth();
             String label = width > 0 && width < dp(48) ? "" : width > 0 && width < dp(100) ? p.title : status + "\n" + p.title;
             if (!label.contentEquals(tile.getText())) tile.setText(label);
-            tile.setContentDescription(p.title + " on " + channels.get(target.row).name + ", " + range(p)
-                    + (live ? ", live now. Press OK to watch." : ". Press OK for reminders."));
+            tile.setContentDescription(p.title + " · " + channels.get(target.row).name + ", " + range(p)
+                    + (live ? ", şimdi canlı. İzlemek için OK tuşuna basın." : ". Hatırlatıcılar için OK tuşuna basın."));
         }
     }
     private final class Cells extends FrameLayout {

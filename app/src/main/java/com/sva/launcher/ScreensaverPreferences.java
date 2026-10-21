@@ -17,15 +17,15 @@ final class ScreensaverPreferences {
     static final String[] THEMES = {"cinema", "darkroom", "editorial", "floating_prints", "monolith", "prism", "silhouette", "travel_journal", "photo_weave"};
     static final String[] NAMES = {"Cinema", "Darkroom", "Editorial", "Floating Prints", "Monolith", "Prism", "Silhouette", "Travel Journal", "Photo Weave"};
     static final String[] DESCRIPTIONS = {
-            "Slow camera movement, soft black edge shading and a quiet cinematic fade.",
-            "An amber-lit contact sheet, warm photographs and a passing trace of light.",
-            "An oversized photograph, ivory margins and beautifully set personal captions.",
-            "Album photographs drift as layered paper prints against colors drawn from your images.",
-            "A sculptural floating photograph, deep image-inspired color and quiet movement.",
-            "Translucent planes, emerald light ribbons and a luminous photographic centrepiece.",
-            "Monochrome photography revealed through broad, moving vertical panels.",
-            "Warm textured paper, photographic keepsakes and delicate route lines.",
-            "Different album photographs woven into a slowly changing asymmetric grid."
+            "Yavaş kamera hareketi, yumuşak siyah kenar gölgesi ve sakin bir sinematik geçiş.",
+            "Kehribar ışıklı bir kontak sayfası, sıcak fotoğraflar ve geçip giden bir ışık izi.",
+            "Büyük boy bir fotoğraf, fildişi kenar boşlukları ve özenle yerleştirilmiş kişisel alt yazılar.",
+            "Albüm fotoğrafları, görsellerinizden alınan renklerin önünde katmanlı kâğıt baskılar gibi süzülür.",
+            "Heykelsi, süzülen bir fotoğraf, görselden ilham alan derin renkler ve sakin hareket.",
+            "Yarı saydam yüzeyler, zümrüt ışık şeritleri ve parlak bir fotoğraf merkezi.",
+            "Geniş, hareketli dikey panellerle ortaya çıkan siyah beyaz fotoğrafçılık.",
+            "Sıcak dokulu kâğıt, fotoğraflı hatıralar ve zarif rota çizgileri.",
+            "Farklı albüm fotoğrafları, yavaşça değişen asimetrik bir ızgarada iç içe geçer."
     };
     static final int[] INTERVALS = {12, 20, 30, 60};
     private ScreensaverPreferences() { }

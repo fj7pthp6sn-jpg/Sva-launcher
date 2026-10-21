@@ -34,7 +34,7 @@ final class YouTubeCard {
         this.type = type;
         this.videoId = videoId;
         this.playlistId = playlistId;
-        this.title = VIDEO.equals(type) ? "YouTube video" : "YouTube playlist";
+        this.title = VIDEO.equals(type) ? "YouTube videosu" : "YouTube oynatma listesi";
         this.autoTitle = this.title;
         if (VIDEO.equals(type) && videoId != null) {
             this.thumbnailUrl = "https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg";

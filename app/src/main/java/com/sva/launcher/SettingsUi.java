@@ -66,7 +66,8 @@ final class SettingsUi {
     static Button action(Context c, String label, Runnable click) {
         Button b = new Button(c); styleButton(b); b.setText(label);
         if (click != null) b.setOnClickListener(v -> click.run());
-        if (label.startsWith("Remove") || label.startsWith("Clear") || label.startsWith("Discard"))
+        if (label.endsWith(" kaldır") || label.endsWith(" temizle") || label.equals("Değişiklikleri at")
+                || label.equals("Temizle") || label.startsWith("Kaldır"))
             b.setTextColor(LiquidTheme.isLight(c) ? 0xFFAA2635 : 0xFFFFA8AB);
         return b;
     }
@@ -104,7 +105,7 @@ final class SettingsUi {
                 new int[][]{new int[]{android.R.attr.state_checked}, new int[]{}},
                 new int[]{LiquidTheme.accent(c) & 0x66FFFFFF, muted(c) & 0x55FFFFFF}));
         row.addView(toggle, new LinearLayout.LayoutParams(-2, -2));
-        row.setContentDescription(title + ", " + (checked ? "On" : "Off"));
+        row.setContentDescription(title + ", " + (checked ? "On" : "Kapalı"));
         row.setAccessibilityDelegate(new View.AccessibilityDelegate() {
             @Override public void onInitializeAccessibilityNodeInfo(View host, android.view.accessibility.AccessibilityNodeInfo info) {
                 super.onInitializeAccessibilityNodeInfo(host, info);
@@ -113,7 +114,7 @@ final class SettingsUi {
         });
         row.setOnClickListener(v -> {
             boolean next = !toggle.isChecked(); toggle.setChecked(next); save.accept(next);
-            row.setContentDescription(title + ", " + (next ? "On" : "Off"));
+            row.setContentDescription(title + ", " + (next ? "On" : "Kapalı"));
         });
         return row;
     }
@@ -131,7 +132,7 @@ final class SettingsUi {
                     .setTitle(title).setSingleChoiceItems(options, current, (d, which) -> {
                         value.setText(options[which]); row.setContentDescription(title + ", " + options[which]);
                         save.accept(which); d.dismiss(); row.requestFocus();
-                    }).setNegativeButton("Cancel", null).create();
+                    }).setNegativeButton("İptal", null).create();
             dialog.setOnDismissListener(d -> row.requestFocus()); Motion.dialog(dialog); dialog.show();
             dialog.getListView().setSelection(current);
         });
@@ -151,7 +152,7 @@ final class SettingsUi {
         LinearLayout header = new LinearLayout(a); header.setGravity(Gravity.CENTER_VERTICAL);
         header.setClipChildren(false); header.setClipToPadding(false);
         header.addView(text(a, title, 28, false), new LinearLayout.LayoutParams(0, -2, 1));
-        Button backButton = action(a, "Back", back);
+        Button backButton = action(a, "Geri", back);
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(dp(a, 112), dp(a, 52));
         backParams.setMargins(dp(a, 4), dp(a, 4), dp(a, 4), dp(a, 4));
         header.addView(backButton, backParams);

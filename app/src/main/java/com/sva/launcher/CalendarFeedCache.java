@@ -57,24 +57,24 @@ final class CalendarFeedCache {
                 succeeded++;
             } catch (Exception failure) {
                 // Exception messages can include private tokens/URLs; expose only a safe category.
-                errors.add("Source " + (i + 1) + ": " + safeError(failure));
+                errors.add("Kaynak " + (i + 1) + ": " + safeError(failure));
             }
         }
         return new RefreshResult(succeeded, errors);
     }
 
     private static String safeError(Exception error) {
-        if (error instanceof java.net.SocketTimeoutException) return "connection timed out";
-        if (error instanceof java.net.UnknownHostException) return "host unavailable";
-        if (error instanceof javax.net.ssl.SSLException) return "secure connection failed";
+        if (error instanceof java.net.SocketTimeoutException) return "bağlantı zaman aşımına uğradı";
+        if (error instanceof java.net.UnknownHostException) return "sunucuya ulaşılamıyor";
+        if (error instanceof javax.net.ssl.SSLException) return "güvenli bağlantı kurulamadı";
         String message = error.getMessage();
-        if (message != null && (message.matches("Calendar feed returned HTTP [0-9]{3}\\.")
-                || message.equals("Calendar feed is larger than 6 MB.")
-                || message.equals("This link did not return an iCalendar feed.")
-                || message.equals("HTTP calendars must stay on your local network.")
-                || message.equals("Calendar redirect is not allowed.")
-                || message.equals("Calendar redirect limit exceeded or destination missing."))) return message;
-        return "could not read this calendar";
+        if (message != null && (message.matches("Takvim kaynağı HTTP hatası döndürdü: [0-9]{3}\\.")
+                || message.equals("Takvim kaynağı 6 MB’tan büyük.")
+                || message.equals("Bu bağlantı bir iCalendar kaynağı döndürmedi.")
+                || message.equals("HTTP takvimleri yalnızca yerel ağınızda olmalıdır.")
+                || message.equals("Takvim yönlendirmesine izin verilmiyor.")
+                || message.equals("Takvim yönlendirme sınırı aşıldı veya hedef eksik."))) return message;
+        return "bu takvim okunamadı";
     }
 
     List<PublicCalendarRepository.Event> merged(List<String> urls, long now) {
@@ -103,7 +103,7 @@ final class CalendarFeedCache {
                         .put("events", encodeEvents(entry.getValue().events)));
             }
             return new JSONObject().put("version", VERSION).put("sources", entries).toString();
-        } catch (Exception failure) { throw new IllegalStateException("Could not cache calendars.", failure); }
+        } catch (Exception failure) { throw new IllegalStateException("Takvimler önbelleğe alınamadı.", failure); }
     }
 
     static JSONArray encodeEvents(List<PublicCalendarRepository.Event> events) throws Exception {
@@ -121,7 +121,7 @@ final class CalendarFeedCache {
         for (int i = 0; i < encoded.length() && result.size() < PublicCalendarRepository.MAX_EVENTS; i++) {
             JSONObject event = encoded.optJSONObject(i);
             if (event == null || event.optLong("end") <= event.optLong("start")) continue;
-            result.add(new PublicCalendarRepository.Event(event.optString("title", "Calendar event"),
+            result.add(new PublicCalendarRepository.Event(event.optString("title", "Takvim etkinliği"),
                     event.optLong("start"), event.optLong("end"), event.optBoolean("allDay"),
                     event.optString("uid"), event.optString("instance")));
         }
@@ -133,7 +133,7 @@ final class CalendarFeedCache {
         final List<String> errors;
         RefreshResult(int succeeded, List<String> errors) { this.succeeded = succeeded; this.errors = errors; }
         String message(int eventCount) {
-            return succeeded + " sources refreshed · " + errors.size() + " failed · " + eventCount + " events cached"
+            return succeeded + " kaynak yenilendi · " + errors.size() + " başarısız · " + eventCount + " etkinlik önbellekte"
                     + (errors.isEmpty() ? "." : ".\n" + String.join("\n", errors));
         }
     }

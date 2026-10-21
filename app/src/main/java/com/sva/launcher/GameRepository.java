@@ -32,8 +32,8 @@ final class GameRepository {
     static final class ImportResult {
         int added, duplicates, skipped;
         String message() {
-            return added + " added · " + duplicates + " duplicate" + (duplicates == 1 ? "" : "s")
-                    + " · " + skipped + " skipped";
+            return added + " eklendi · " + duplicates + " yinelenen" + (duplicates == 1 ? "" : "s")
+                    + " · " + skipped + " atlandı";
         }
     }
 
@@ -90,7 +90,7 @@ final class GameRepository {
     synchronized ImportResult importTree(Uri tree) {
         ImportResult result = new ImportResult();
         try {
-            if (tree == null) throw new IllegalArgumentException("Missing folder");
+            if (tree == null) throw new IllegalArgumentException("Klasör bulunamadı");
             if ("file".equals(tree.getScheme())) {
                 walkFiles(new File(tree.getPath()), result, 0);
                 return result;
@@ -138,14 +138,14 @@ final class GameRepository {
         File destination = null;
         try (InputStream input = new BufferedInputStream(context.getContentResolver().openInputStream(uri));
              OutputStream output = new BufferedOutputStream(new FileOutputStream(temporary))) {
-            if (input == null) throw new IllegalStateException("Could not read file");
+            if (input == null) throw new IllegalStateException("Dosya okunamadı");
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] buffer = new byte[64 * 1024];
             byte[] header = new byte[4];
             int headerCount = 0, read, total = 0;
             while ((read = input.read(buffer)) != -1) {
                 total += read;
-                if (total > MAX_ROM_BYTES) throw new IllegalArgumentException("NES file is larger than 32 MB.");
+                if (total > MAX_ROM_BYTES) throw new IllegalArgumentException("NES dosyası 32 MB’tan büyük.");
                 if (headerCount < 4) {
                     int take = Math.min(4 - headerCount, read);
                     System.arraycopy(buffer, 0, header, headerCount, take);
@@ -156,11 +156,11 @@ final class GameRepository {
             }
             output.flush();
             if (headerCount != 4 || header[0] != 'N' || header[1] != 'E' || header[2] != 'S' || header[3] != 0x1a)
-                throw new IllegalArgumentException("Not an iNES file");
+                throw new IllegalArgumentException("iNES dosyası değil");
             String id = hex(digest.digest());
             if (find(id) != null) { result.duplicates++; temporary.delete(); return; }
             destination = new File(roms, id + ".nes");
-            if (!temporary.renameTo(destination)) throw new IllegalStateException("Could not finish import");
+            if (!temporary.renameTo(destination)) throw new IllegalStateException("İçe aktarma tamamlanamadı");
             List<GameRecord> current = games();
             current.add(new GameRecord(id, cleanTitle(displayName), destination.getName(), null,
                     System.currentTimeMillis(), 0L));
@@ -194,13 +194,13 @@ final class GameRepository {
         try {
             try (InputStream input = context.getContentResolver().openInputStream(uri);
                  OutputStream output = new FileOutputStream(temporary)) {
-                if (input == null) throw new IllegalStateException("Could not read artwork");
+                if (input == null) throw new IllegalStateException("Kapak görseli okunamadı");
                 copyBounded(input, output, MAX_ARTWORK_BYTES);
             }
             android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
             bounds.inJustDecodeBounds = true;
             android.graphics.BitmapFactory.decodeFile(temporary.getAbsolutePath(), bounds);
-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new IllegalArgumentException("Choose an image file.");
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new IllegalArgumentException("Bir görsel dosyası seçin.");
             java.nio.file.Files.move(temporary.toPath(), destination.toPath(),
                     java.nio.file.StandardCopyOption.ATOMIC_MOVE, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         } finally { temporary.delete(); }
@@ -255,11 +255,11 @@ final class GameRepository {
     }
 
     static String cleanTitle(String name) {
-        String value = name == null ? "NES game" : name.replaceFirst("(?i)\\.nes$", "").replace('_', ' ').trim();
+        String value = name == null ? "NES oyunu" : name.replaceFirst("(?i)\\.nes$", "").replace('_', ' ').trim();
         while (value.matches(".*\\s\\[[^]]*]$")) value = value.replaceFirst("\\s\\[[^]]*]$", "").trim();
         while (value.matches("(?i).*\\s\\((usa|world|europe|japan|rev[^)]*|v[0-9][^)]*|beta[^)]*|proto[^)]*)\\)$"))
             value = value.replaceFirst("(?i)\\s\\((usa|world|europe|japan|rev[^)]*|v[0-9][^)]*|beta[^)]*|proto[^)]*)\\)$", "").trim();
-        return value.isEmpty() ? "NES game" : value;
+        return value.isEmpty() ? "NES oyunu" : value;
     }
 
     static List<Uri> urisFromResult(android.content.Intent data) {
@@ -283,7 +283,7 @@ final class GameRepository {
         byte[] buffer = new byte[8192];
         int total = 0, count;
         while ((count = input.read(buffer)) != -1) {
-            if (count > maxBytes - total) throw new IllegalArgumentException("File exceeds the import size limit.");
+            if (count > maxBytes - total) throw new IllegalArgumentException("Dosya içe aktarma boyut sınırını aşıyor.");
             total += count;
             output.write(buffer, 0, count);
         }

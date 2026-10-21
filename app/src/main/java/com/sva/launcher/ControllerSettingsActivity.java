@@ -27,14 +27,14 @@ public final class ControllerSettingsActivity extends MotionActivity {
             if ((device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
                     || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) controllers.add(device);
         }
-        LinearLayout shell = SettingsUi.page(this, "Game controllers", "Configure buttons for your connected gamepads", this::handleBack);
+        LinearLayout shell = SettingsUi.page(this, "Oyun kolları", "Bağlı oyun kollarınızın tuşlarını ayarlayın", this::handleBack);
         LinearLayout page = SettingsUi.scroll(shell);
-        SettingsUi.heading(page, "Connected controllers");
-        SettingsUi.hint(page, "Left-stick and directional-pad movement work automatically. Select a controller to remap its buttons.");
+        SettingsUi.heading(page, "Bağlı kontrolcüler");
+        SettingsUi.hint(page, "Sol analog çubuk ve yön tuşları otomatik çalışır. Tuşlarını yeniden atamak için bir kontrolcü seçin.");
         Button preferred = null;
         if (controllers.isEmpty()) {
-            SettingsUi.heading(page, "No controller connected");
-            SettingsUi.hint(page, "Connect a gamepad by Bluetooth or USB, then choose Refresh.");
+            SettingsUi.heading(page, "Bağlı kontrolcü yok");
+            SettingsUi.hint(page, "Bluetooth veya USB ile bir oyun kolu bağlayın, sonra Yenile’yi seçin.");
         }
         for (InputDevice device : controllers) {
             Button button = SettingsUi.action(this, device.getName(), () -> {
@@ -43,25 +43,25 @@ public final class ControllerSettingsActivity extends MotionActivity {
             SettingsUi.add(page, button);
             if (preferred == null || device.getDescriptor().equals(focusedController)) preferred = button;
         }
-        Button refresh = SettingsUi.action(this, "Refresh controllers", this::renderList);
+        Button refresh = SettingsUi.action(this, "Kontrolcüleri yenile", this::renderList);
         SettingsUi.add(page, refresh);
         setContentView(shell); (preferred == null ? refresh : preferred).requestFocus();
     }
 
     private void begin(InputDevice device) {
         mappingDevice = device; mapping = new ControllerProfile(); step = 0;
-        LinearLayout shell = SettingsUi.page(this, "Map controller", device.getName(), this::handleBack);
+        LinearLayout shell = SettingsUi.page(this, "Kontrolcüyü eşle", device.getName(), this::handleBack);
         LinearLayout page = SettingsUi.scroll(shell);
-        SettingsUi.heading(page, "Button mapping");
+        SettingsUi.heading(page, "Tuş eşleme");
         prompt = SettingsUi.text(this, "", 28, false);
         prompt.setPadding(0, SettingsUi.dp(this, 32), 0, SettingsUi.dp(this, 32));
         page.addView(prompt);
-        SettingsUi.hint(page, "Press a button on the selected controller. Press Back to cancel without saving.");
+        SettingsUi.hint(page, "Seçili kontrolcüde bir tuşa basın. Kaydetmeden iptal etmek için Geri’ye basın.");
         setContentView(shell); updatePrompt();
     }
 
     private void updatePrompt() {
-        prompt.setText("Button " + (step + 1) + " of " + mapping.keys.length + "\n\n" + ControllerProfile.NAMES[step]);
+        prompt.setText("Tuş " + (step + 1) + " / " + mapping.keys.length + "\n\n" + ControllerProfile.NAMES[step]);
     }
 
     private void handleBack() {
@@ -81,8 +81,8 @@ public final class ControllerSettingsActivity extends MotionActivity {
         mapping.keys[step++] = event.getKeyCode();
         if (step < mapping.keys.length) updatePrompt();
         else {
-            try { mapping.save(this, mappingDevice); Toast.makeText(this, "Controller mapping saved.", Toast.LENGTH_SHORT).show(); }
-            catch (Exception e) { Toast.makeText(this, "Could not save mapping.", Toast.LENGTH_LONG).show(); }
+            try { mapping.save(this, mappingDevice); Toast.makeText(this, "Kontrolcü eşlemesi kaydedildi.", Toast.LENGTH_SHORT).show(); }
+            catch (Exception e) { Toast.makeText(this, "Eşleme kaydedilemedi.", Toast.LENGTH_LONG).show(); }
             mappingDevice = null; renderList();
         }
         return true;

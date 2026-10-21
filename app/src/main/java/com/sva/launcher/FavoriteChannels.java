@@ -10,7 +10,7 @@ import java.util.Set;
 
 public final class FavoriteChannels {
     public static final String PREF_FAVORITES = "favoriteChannels";
-    public static final String CATEGORY_FAVORITES = "Favourites";
+    public static final String CATEGORY_FAVORITES = "Favoriler";
 
     private FavoriteChannels() { }
 

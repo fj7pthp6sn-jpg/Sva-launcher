@@ -41,7 +41,7 @@ public final class PlaybackActivity extends Activity {
     private LinearLayout infoPanel;
     private TextView message, programmeTitle, programmeTimes, nextProgramme;
     private ProgressBar programmeProgress;
-    private String currentChannelName = "Channel";
+    private String currentChannelName = "Kanal";
     private String currentProgramme = "";
     private String followingProgramme = "";
     private long programmeStartMs, programmeEndMs;
@@ -68,7 +68,7 @@ public final class PlaybackActivity extends Activity {
         try { playback = PlaybackSession.restore(this, getIntent()); }
         catch (Exception ignored) { playback = new Intent(); missingSession = true; }
         String name = playback.getStringExtra("name");
-        currentChannelName = name == null ? "Channel" : name;
+        currentChannelName = name == null ? "Kanal" : name;
         String streamUrl = playback.getStringExtra("url");
         String licenseUrl = playback.getStringExtra("licenseUrl");
 
@@ -95,7 +95,7 @@ public final class PlaybackActivity extends Activity {
         boolean initialFavorite = activeChannel != null ? activeChannel.optBoolean("favorite", false)
                 : playback.getBooleanExtra("favorite", false);
         message = new TextView(this);
-        message.setText("Loading " + (initialFavorite ? "★ " : "") + currentChannelName + "…");
+        message.setText("Yükleniyor: " + (initialFavorite ? "★ " : "") + currentChannelName + "…");
         message.setTextColor(LiquidTheme.text(this));
         message.setTextSize(12);
         message.setLetterSpacing(.08f);
@@ -138,17 +138,17 @@ public final class PlaybackActivity extends Activity {
         }
 
         if (missingSession) {
-            showError("Playback session is unavailable. Go back and select the channel again.");
+            showError("Oynatma oturumu kullanılamıyor. Geri dönüp kanalı yeniden seçin.");
             return;
         }
         String encodedRequest = playback.getStringExtra("playbackRequest");
         if (encodedRequest != null) {
             try { startPlayback(PlaybackRequest.fromJson(new JSONObject(encodedRequest))); }
-            catch (Exception ignored) { showError("Invalid channel playback configuration."); }
+            catch (Exception ignored) { showError("Geçersiz kanal oynatma yapılandırması."); }
             return;
         }
         if (streamUrl == null || streamUrl.trim().isEmpty()) {
-            showError("Missing channel stream URL.");
+            showError("Kanal yayın adresi eksik.");
             return;
         }
         Map<String, String> oldHeaders = new LinkedHashMap<>();
@@ -172,18 +172,18 @@ public final class PlaybackActivity extends Activity {
             player.addListener(new Player.Listener() {
                 @Override public void onPlaybackStateChanged(int playbackState) {
                     if (playbackState == Player.STATE_READY) {
-                        message.setText("Playing · Up/Down to change channel");
+                        message.setText("Oynatılıyor · Kanal değiştirmek için Yukarı/Aşağı");
                         hideMessageAfter(2000);
                     }
-                    else if (playbackState == Player.STATE_ENDED) message.setText("Stream ended · Back to return");
+                    else if (playbackState == Player.STATE_ENDED) message.setText("Yayın bitti · Dönmek için Geri");
                 }
 
                 @Override public void onPlayerError(PlaybackException error) {
                     if (!activeDrmType.isEmpty() || containsDrmFailure(error)) {
                         showError(("clearkey".equals(activeDrmType) ? "ClearKey" : "Widevine")
-                                + " playback failed. Check the channel license settings and TV support.");
+                                + " oynatma başarısız. Kanal lisans ayarlarını ve TV desteğini kontrol edin.");
                     } else {
-                        showError("Could not play this channel. The stream or codec may not be supported by the TV.");
+                        showError("Bu kanal oynatılamadı. Yayın veya codec TV tarafından desteklenmiyor olabilir.");
                     }
                 }
             });
@@ -191,10 +191,10 @@ public final class PlaybackActivity extends Activity {
             player.play();
         } catch (Exception e) {
             showError("clearkey".equals(activeDrmType)
-                    ? "Could not start ClearKey playback. Check the DASH format, keys or license URL."
+                    ? "ClearKey oynatma başlatılamadı. DASH biçimini, anahtarları veya lisans adresini kontrol edin."
                     : "widevine".equals(activeDrmType)
-                    ? "Could not start Widevine playback. Check the channel DRM settings."
-                    : "Could not start this stream. Check the stream URL and playlist options.");
+                    ? "Widevine oynatma başlatılamadı. Kanal DRM ayarlarını kontrol edin."
+                    : "Bu yayın başlatılamadı. Yayın adresini ve liste seçeneklerini kontrol edin.");
         }
     }
 
@@ -238,14 +238,14 @@ public final class PlaybackActivity extends Activity {
         message.setText((nowFav ? "★ " : "") + currentChannelName);
         Motion.show(infoPanel, false);
         hideMessageAfter(2500);
-        Toast.makeText(this, (nowFav ? "Added to" : "Removed from") + " favourites: " + currentChannelName, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, (nowFav ? "Eklendi:" : "Kaldırıldı:") + " favoriler: " + currentChannelName, Toast.LENGTH_SHORT).show();
     }
 
     private void changeChannel(int direction) {
         zapIndex = (zapIndex + direction + zapChannels.length()) % zapChannels.length();
         JSONObject item = zapChannels.optJSONObject(zapIndex);
         if (item == null) return;
-        String name = item.optString("name", "Channel");
+        String name = item.optString("name", "Kanal");
         currentChannelName = name;
         boolean isFav = item.optBoolean("favorite", false);
         message.setText((isFav ? "★ " : "") + name);
@@ -299,7 +299,7 @@ public final class PlaybackActivity extends Activity {
         programmeTitle.setVisibility(hasTitle ? View.VISIBLE : View.GONE);
         programmeProgress.setVisibility(hasTiming ? View.VISIBLE : View.GONE);
         programmeTimes.setVisibility(hasTiming ? View.VISIBLE : View.GONE);
-        nextProgramme.setText(followingProgramme.isEmpty() ? "" : "Next · " + followingProgramme);
+        nextProgramme.setText(followingProgramme.isEmpty() ? "" : "Sonraki · " + followingProgramme);
         nextProgramme.setVisibility(followingProgramme.isEmpty() ? View.GONE : View.VISIBLE);
         infoPanel.setVisibility(View.VISIBLE);
         updateProgrammeProgress();
@@ -349,7 +349,7 @@ public final class PlaybackActivity extends Activity {
         long minutesLeft = Math.max(0L, (programmeEndMs - System.currentTimeMillis() + 59999L) / 60000L);
         java.text.DateFormat time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT, Locale.getDefault());
         programmeTimes.setText(time.format(new Date(programmeStartMs)) + " – " + time.format(new Date(programmeEndMs))
-                + " · " + minutesLeft + " min left");
+                + " · " + minutesLeft + " dk kaldı");
     }
 
     private int dp(int value) { return Math.round(value * getResources().getDisplayMetrics().density); }

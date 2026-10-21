@@ -66,7 +66,7 @@ final class WeatherRepository {
                 days.add(new Day(item.getString("date"), item.getInt("code"), item.getDouble("low"),
                         item.getDouble("high"), item.optInt("precipitation", 0)));
             }
-            Forecast forecast = new Forecast(value.optString("location", "Weather"), value.getLong("fetchedAt"),
+            Forecast forecast = new Forecast(value.optString("location", "Hava Durumu"), value.getLong("fetchedAt"),
                     value.getDouble("temperature"), value.getDouble("apparentTemperature"),
                     value.getDouble("windSpeed"), value.getInt("code"), value.optBoolean("day", true), days);
             forecast.humidity = value.optInt("humidity", -1);
@@ -113,7 +113,7 @@ final class WeatherRepository {
         JSONArray highs = daily.getJSONArray("temperature_2m_max"), lows = daily.getJSONArray("temperature_2m_min");
         JSONArray rain = daily.optJSONArray("precipitation_probability_max");
         int count = Math.min(4, Math.min(Math.min(dates.length(), codes.length()), Math.min(highs.length(), lows.length())));
-        if (count < 2) throw new IllegalArgumentException("Forecast did not include upcoming days.");
+        if (count < 2) throw new IllegalArgumentException("Tahmin, yaklaşan günleri içermiyordu.");
         ArrayList<Day> days = new ArrayList<>();
         for (int i = 1; i < count; i++) days.add(new Day(dates.getString(i), codes.getInt(i),
                 lows.getDouble(i), highs.getDouble(i), rain == null ? 0 : rain.optInt(i, 0)));
@@ -131,15 +131,15 @@ final class WeatherRepository {
     }
 
     static String condition(int code) {
-        if (code == 0) return "Clear";
-        if (code <= 2) return "Partly cloudy";
-        if (code == 3) return "Overcast";
-        if (code == 45 || code == 48) return "Fog";
-        if (code >= 51 && code <= 57) return "Drizzle";
-        if ((code >= 61 && code <= 67) || code == 80 || code == 81 || code == 82) return "Rain";
-        if ((code >= 71 && code <= 77) || code == 85 || code == 86) return "Snow";
-        if (code >= 95) return "Thunderstorm";
-        return "Mixed weather";
+        if (code == 0) return "Açık";
+        if (code <= 2) return "Parçalı bulutlu";
+        if (code == 3) return "Kapalı";
+        if (code == 45 || code == 48) return "Sis";
+        if (code >= 51 && code <= 57) return "Çiseleme";
+        if ((code >= 61 && code <= 67) || code == 80 || code == 81 || code == 82) return "Yağmur";
+        if ((code >= 71 && code <= 77) || code == 85 || code == 86) return "Kar";
+        if (code >= 95) return "Gök gürültülü fırtına";
+        return "Karışık hava";
     }
 
     static String symbol(int code, boolean day) {
@@ -160,12 +160,12 @@ final class WeatherRepository {
         connection.setRequestProperty("User-Agent", "SvaLauncher/1.0");
         try {
             int status = connection.getResponseCode();
-            if (status < 200 || status >= 300) throw new IllegalStateException("Weather service returned " + status + ".");
-            if (connection.getContentLength() > 1024 * 1024) throw new IllegalStateException("Weather response was too large.");
+            if (status < 200 || status >= 300) throw new IllegalStateException("Hava durumu servisi hata döndürdü: " + status + ".");
+            if (connection.getContentLength() > 1024 * 1024) throw new IllegalStateException("Hava durumu yanıtı çok büyük.");
             try (InputStream input = connection.getInputStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                 byte[] buffer = new byte[8192]; int read, total = 0;
                 while ((read = input.read(buffer)) != -1) {
-                    total += read; if (total > 1024 * 1024) throw new IllegalStateException("Weather response was too large.");
+                    total += read; if (total > 1024 * 1024) throw new IllegalStateException("Hava durumu yanıtı çok büyük.");
                     output.write(buffer, 0, read);
                 }
                 return new String(output.toByteArray(), StandardCharsets.UTF_8);

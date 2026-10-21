@@ -115,7 +115,7 @@ public final class TvFilePickerActivity extends MotionActivity {
         browser.setOrientation(LinearLayout.VERTICAL);
         browser.setPadding(dp(12), dp(8), dp(12), dp(8));
         browser.setBackground(SettingsUi.shape(this, SettingsUi.surface(this), SettingsUi.raised(this), 1, 18));
-        path = SettingsUi.text(this, "Storage locations", 15, true);
+        path = SettingsUi.text(this, "Depolama konumları", 15, true);
         path.setSingleLine(true);
         path.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
         path.setGravity(Gravity.CENTER_VERTICAL);
@@ -141,8 +141,8 @@ public final class TvFilePickerActivity extends MotionActivity {
             filename.setSingleLine(true);
             filename.setText("sva-launcher-backup.json");
             filename.setSelectAllOnFocus(true);
-            filename.setHint("Backup filename");
-            filename.setContentDescription("Backup filename");
+            filename.setHint("Yedek dosya adı");
+            filename.setContentDescription("Yedek dosya adı");
             SettingsUi.styleInput(filename, false);
             LinearLayout.LayoutParams inputParams = new LinearLayout.LayoutParams(-1, dp(56));
             inputParams.topMargin = dp(12);
@@ -153,10 +153,10 @@ public final class TvFilePickerActivity extends MotionActivity {
         footer.setClipChildren(false);
         footer.setClipToPadding(false);
         footer.setPadding(dp(4), dp(4), dp(4), dp(4));
-        back = pickerButton("Back");
+        back = pickerButton("Geri");
         back.setOnClickListener(v -> up());
         footer.addView(back, new LinearLayout.LayoutParams(dp(112), dp(52)));
-        action = pickerButton("Select");
+        action = pickerButton("Seç");
         LinearLayout.LayoutParams actionParams = new LinearLayout.LayoutParams(0, dp(52), 1);
         actionParams.leftMargin = dp(12);
         footer.addView(action, actionParams);
@@ -182,8 +182,8 @@ public final class TvFilePickerActivity extends MotionActivity {
     }
 
     private void updateAction() {
-        action.setText(isMultiMode() ? "Add selected (" + selected.size() + ")"
-                : isFolderMode() ? "Use this folder" : isSaveMode() ? "Save here" : "Select a file");
+        action.setText(isMultiMode() ? "Seçilenleri ekle (" + selected.size() + ")"
+                : isFolderMode() ? "Bu klasörü kullan" : isSaveMode() ? "Buraya kaydet" : "Bir dosya seçin");
         boolean enabled = hasAccess() && (isMultiMode() ? !selected.isEmpty()
                 : directory != null && (isFolderMode() || isSaveMode()));
         action.setEnabled(enabled);
@@ -193,12 +193,12 @@ public final class TvFilePickerActivity extends MotionActivity {
     }
 
     private String title() {
-        if (MODE_NES_FILES.equals(mode)) return "Add NES games";
-        if (MODE_NES_FOLDER.equals(mode)) return "Add games from folder";
-        if (MODE_IMAGE_FOLDER.equals(mode)) return "Choose photo folder";
-        if (MODE_IMAGE.equals(mode)) return "Choose image";
-        if (MODE_JSON.equals(mode)) return "Restore backup";
-        return "Save backup";
+        if (MODE_NES_FILES.equals(mode)) return "NES oyunları ekle";
+        if (MODE_NES_FOLDER.equals(mode)) return "Klasörden oyun ekle";
+        if (MODE_IMAGE_FOLDER.equals(mode)) return "Fotoğraf klasörü seç";
+        if (MODE_IMAGE.equals(mode)) return "Görsel seç";
+        if (MODE_JSON.equals(mode)) return "Yedeği geri yükle";
+        return "Yedeği kaydet";
     }
 
     private boolean hasAccess() {
@@ -214,7 +214,7 @@ public final class TvFilePickerActivity extends MotionActivity {
                         Uri.parse("package:" + getPackageName())), STORAGE_SETTINGS);
             } catch (Exception e) {
                 try { startActivityForResult(new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION), STORAGE_SETTINGS); }
-                catch (Exception ignored) { Toast.makeText(this, "Storage settings are unavailable.", Toast.LENGTH_LONG).show(); }
+                catch (Exception ignored) { Toast.makeText(this, "Depolama ayarları kullanılamıyor.", Toast.LENGTH_LONG).show(); }
             }
         } else {
             requestPermissions(isSaveMode()
@@ -256,30 +256,30 @@ public final class TvFilePickerActivity extends MotionActivity {
         if (directory != null && !directory.isDirectory()) directory = null;
         updateAction();
         if (!hasAccess()) {
-            path.setText("Storage access needed");
-            instruction.setText("Allow storage access to browse files on this device and connected USB drives.");
-            row("Allow storage access", this::requestAccess);
+            path.setText("Depolama erişimi gerekli");
+            instruction.setText("Bu cihazdaki ve bağlı USB belleklerdeki dosyalara göz atmak için depolama erişimine izin verin.");
+            row("Depolama erişimine izin ver", this::requestAccess);
             rows.getChildAt(0).requestFocus();
             return;
         }
         if (directory == null) {
-            path.setText("Storage locations");
-            instruction.setText("Choose internal storage or a connected USB drive.");
+            path.setText("Depolama konumları");
+            instruction.setText("Dahili depolamayı veya bağlı bir USB belleği seçin.");
             List<File> roots = roots();
             for (File root : roots) row(root.equals(Environment.getExternalStorageDirectory())
-                    ? "Internal storage" : "USB · " + root.getName(), () -> navigate(root));
-            if (roots.isEmpty()) row("No local storage found", null);
+                    ? "Dahili depolama" : "USB · " + root.getName(), () -> navigate(root));
+            if (roots.isEmpty()) row("Yerel depolama bulunamadı", null);
             if (!roots.isEmpty()) rows.getChildAt(0).requestFocus();
             return;
         }
         path.setText(directory.getAbsolutePath());
-        path.setContentDescription("Current folder: " + directory.getAbsolutePath());
-        instruction.setText(isMultiMode() ? selected.size() + " selected · press OK on files, then Add selected"
-                : isFolderMode() ? "Open a folder, then choose Use this folder" : isSaveMode()
-                ? "Enter a filename and save in this folder" : "Select a file with OK");
+        path.setContentDescription("Geçerli klasör: " + directory.getAbsolutePath());
+        instruction.setText(isMultiMode() ? selected.size() + " seçili · dosyalarda OK tuşuna basın, sonra Seçilenleri ekle"
+                : isFolderMode() ? "Bir klasör açın, sonra Bu klasörü kullan’ı seçin" : isSaveMode()
+                ? "Bir dosya adı girin ve bu klasöre kaydedin" : "OK ile bir dosya seçin");
         File[] children = directory.listFiles();
         if (children == null) {
-            row("This folder cannot be read", null);
+            row("Bu klasör okunamıyor", null);
         } else {
             Arrays.sort(children, Comparator.comparing(File::isDirectory).reversed()
                     .thenComparing(File::getName, String.CASE_INSENSITIVE_ORDER));
@@ -292,7 +292,7 @@ public final class TvFilePickerActivity extends MotionActivity {
                     shown++;
                 }
             }
-            if (shown == 0) row("No matching files here", null);
+            if (shown == 0) row("Burada eşleşen dosya yok", null);
         }
         if (rows.getChildCount() > 0 && rows.getChildAt(0).isFocusable()) rows.getChildAt(0).requestFocus();
         else (action.isEnabled() ? action : back).requestFocus();
@@ -332,7 +332,7 @@ public final class TvFilePickerActivity extends MotionActivity {
     private void styleFileRow(Button button, File file, boolean folder) {
         boolean checked = !folder && selected.contains(file);
         button.setBackground(SettingsUi.states(this, checked));
-        button.setContentDescription(file.getName() + (folder ? ", folder" : checked ? ", selected" : ", file"));
+        button.setContentDescription(file.getName() + (folder ? ", klasör" : checked ? ", seçili" : ", dosya"));
         android.graphics.drawable.Drawable icon = new android.graphics.drawable.Drawable() {
             private final android.graphics.Paint paint = new android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG);
             @Override public void draw(android.graphics.Canvas canvas) {
@@ -373,7 +373,7 @@ public final class TvFilePickerActivity extends MotionActivity {
                 View row = rows.getChildAt(i);
                 if (row instanceof Button && file.equals(row.getTag())) styleFileRow((Button) row, file, false);
             }
-            instruction.setText(selected.size() + " selected · press OK on files, then Add selected");
+            instruction.setText(selected.size() + " seçili · dosyalarda OK tuşuna basın, sonra Seçilenleri ekle");
             updateAction();
         } else finishWithFiles(Arrays.asList(file));
     }
@@ -386,21 +386,21 @@ public final class TvFilePickerActivity extends MotionActivity {
         } else if (isSaveMode() && directory != null) {
             String name = filename.getText().toString().trim();
             if (name.isEmpty() || name.equals(".") || name.equals("..") || name.contains("/") || name.contains("\\")) {
-                filename.setError("Enter a filename without slashes"); return;
+                filename.setError("Eğik çizgi içermeyen bir dosya adı girin"); return;
             }
             if (!name.toLowerCase(Locale.ROOT).endsWith(".json")) name += ".json";
             File target = new File(directory, name);
             if (target.exists()) {
                 AlertDialog prompt = new AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this))
-                        .setTitle("Replace " + name + "?")
-                        .setPositiveButton("Replace", (dialog, which) -> finishWithFiles(Arrays.asList(target)))
-                        .setNegativeButton("Cancel", null).create();
+                        .setTitle("Değiştir: " + name + "?")
+                        .setPositiveButton("Değiştir", (dialog, which) -> finishWithFiles(Arrays.asList(target)))
+                        .setNegativeButton("İptal", null).create();
                 Motion.dialog(prompt); prompt.show();
             } else {
                 try {
-                    if (!target.createNewFile()) throw new IOException("Could not create file");
+                    if (!target.createNewFile()) throw new IOException("Dosya oluşturulamadı");
                     finishWithFiles(Arrays.asList(target));
-                } catch (IOException e) { Toast.makeText(this, "Could not create a file here.", Toast.LENGTH_LONG).show(); }
+                } catch (IOException e) { Toast.makeText(this, "Burada dosya oluşturulamadı.", Toast.LENGTH_LONG).show(); }
             }
         }
     }

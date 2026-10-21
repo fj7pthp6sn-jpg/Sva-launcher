@@ -69,8 +69,8 @@ final class PublicCalendarRepository {
         for (int i = 0; i < lines.length; i++) {
             if (lines[i].trim().isEmpty()) continue;
             String url = normalizeUrl(lines[i]);
-            if (url == null) throw new IllegalArgumentException("Line " + (i + 1)
-                    + ": use an HTTPS calendar URL or an HTTP URL on your local network.");
+            if (url == null) throw new IllegalArgumentException("Satır " + (i + 1)
+                    + ": bir HTTPS takvim adresi veya yerel ağınızdaki bir HTTP adresi kullanın.");
             urls.add(url);
         }
         return new ArrayList<>(urls);
@@ -118,20 +118,20 @@ final class PublicCalendarRepository {
                     && "http".equalsIgnoreCase(destination.getScheme()))
                 throw new IOException();
             return normalized;
-        } catch (Exception failure) { throw new IOException("Calendar redirect is not allowed."); }
+        } catch (Exception failure) { throw new IOException("Takvim yönlendirmesine izin verilmiyor."); }
     }
 
     static String download(String publicUrl, ConnectionFactory factory, Resolver resolver) throws Exception {
         String current = normalizeUrl(publicUrl);
-        if (current == null) throw new IOException("Invalid calendar URL.");
+        if (current == null) throw new IOException("Geçersiz takvim adresi.");
         for (int redirects = 0; ; redirects++) {
             URL target = new URL(current);
             String originalHost = target.getHost();
             if ("http".equals(target.getProtocol())) {
                 InetAddress[] addresses = resolver.resolve(originalHost.replace("[", "").replace("]", ""));
-                if (addresses.length == 0) throw new IOException("Local calendar host could not be resolved.");
+                if (addresses.length == 0) throw new IOException("Yerel takvim sunucusu çözümlenemedi.");
                 for (InetAddress address : addresses) {
-                    if (!isLocalAddress(address)) throw new IOException("HTTP calendars must stay on your local network.");
+                    if (!isLocalAddress(address)) throw new IOException("HTTP takvimleri yalnızca yerel ağınızda olmalıdır.");
                 }
                 // Connect to the checked address, avoiding a second DNS resolution.
                 target = new URL("http", addresses[0].getHostAddress(), target.getPort(), target.getFile());
@@ -150,25 +150,25 @@ final class PublicCalendarRepository {
                 connection.setRequestProperty("User-Agent", "SvaLauncher/1.0 (Android TV)");
                 int status = connection.getResponseCode();
                 if (status == 301 || status == 302 || status == 303 || status == 307 || status == 308) {
-                    String location = connection.getHeaderField("Location");
+                    String location = connection.getHeaderField("Konum");
                     if (redirects >= 5 || location == null || location.trim().isEmpty())
-                        throw new IOException("Calendar redirect limit exceeded or destination missing.");
+                        throw new IOException("Takvim yönlendirme sınırı aşıldı veya hedef eksik.");
                     current = redirectUrl(current, location);
                     continue;
                 }
-                if (status < 200 || status >= 300) throw new IOException("Calendar feed returned HTTP " + status + ".");
+                if (status < 200 || status >= 300) throw new IOException("Takvim kaynağı HTTP hatası döndürdü: " + status + ".");
                 try (InputStream input = connection.getInputStream(); ByteArrayOutputStream output = new ByteArrayOutputStream()) {
                     byte[] buffer = new byte[8192];
                     int total = 0, count;
                     while ((count = input.read(buffer)) != -1) {
                         total += count;
-                        if (total > MAX_FEED_BYTES) throw new IOException("Calendar feed is larger than 6 MB.");
+                        if (total > MAX_FEED_BYTES) throw new IOException("Takvim kaynağı 6 MB’tan büyük.");
                         output.write(buffer, 0, count);
                     }
                     String feed = new String(output.toByteArray(), StandardCharsets.UTF_8);
                     String upper = feed.toUpperCase(Locale.ROOT);
                     if (!upper.contains("BEGIN:VCALENDAR") || !upper.contains("END:VCALENDAR"))
-                        throw new IOException("This link did not return an iCalendar feed.");
+                        throw new IOException("Bu bağlantı bir iCalendar kaynağı döndürmedi.");
                     return feed;
                 }
             } finally {
@@ -223,7 +223,7 @@ final class PublicCalendarRepository {
         if (startProperty == null) return;
         if ("CANCELLED".equalsIgnoreCase(value(properties, "STATUS"))) return;
         String title = unescape(value(properties, "SUMMARY"));
-        if (title.trim().isEmpty()) title = "Calendar event";
+        if (title.trim().isEmpty()) title = "Takvim etkinliği";
         try {
             ZonedDateTime start = parseDate(startProperty);
             boolean allDay = "DATE".equalsIgnoreCase(startProperty.parameters.get("VALUE"))

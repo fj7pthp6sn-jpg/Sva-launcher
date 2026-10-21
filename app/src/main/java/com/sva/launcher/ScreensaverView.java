@@ -94,7 +94,7 @@ final class ScreensaverView extends View {
                 current = photoWindow.get(currentKey);
                 artScene = makeScene();
                 changedAt = SystemClock.uptimeMillis();
-                status = hasSavedPhoto || album.isEmpty() ? "" : "Loading your photographs…";
+                status = hasSavedPhoto || album.isEmpty() ? "" : "Fotoğraflarınız yükleniyor…";
                 if (hasSavedPhoto) frame = 1;
                 if (!cached.isEmpty()) {
                     setUrls(cached);
@@ -111,7 +111,7 @@ final class ScreensaverView extends View {
                 });
             } catch (Exception ignored) {
                 main.post(() -> {
-                    if (!stopped) status = frame > 0 ? "" : "Album unavailable · showing landscape wallpaper";
+                    if (!stopped) status = frame > 0 ? "" : "Albüm kullanılamıyor · manzara duvar kâğıdı gösteriliyor";
                 });
             }
         });
@@ -168,7 +168,7 @@ final class ScreensaverView extends View {
                 if (loaded != null) switchTo(key, loaded);
                 else {
                     index = (index + candidates.size()) % urls.size();
-                    if (frame == 0) status = "Photos unavailable · showing landscape wallpaper";
+                    if (frame == 0) status = "Fotoğraflar kullanılamıyor · manzara duvar kâğıdı gösteriliyor";
                     scheduleNext();
                 }
             });
@@ -306,8 +306,8 @@ final class ScreensaverView extends View {
     }
 
     private void updateInformation(long now) {
-        weatherLabel = "Weather unavailable";
-        weatherDetail = "Set up weather in Launcher Settings";
+        weatherLabel = "Hava durumu alınamıyor";
+        weatherDetail = "Hava durumunu Launcher Ayarları’ndan kurun";
         try {
             WeatherRepository.Forecast forecast = WeatherRepository.Forecast.fromJson(
                     new org.json.JSONObject(prefs.getString("weatherCache", "")));
@@ -319,8 +319,8 @@ final class ScreensaverView extends View {
                 weatherDetail = forecast.location;
             }
         } catch (Exception ignored) { }
-        eventLabel = "No upcoming events";
-        eventDetail = "Your calendar";
+        eventLabel = "Yaklaşan etkinlik yok";
+        eventDetail = "Takviminiz";
         try {
             org.json.JSONArray events = new org.json.JSONArray(prefs.getString("publicCalendarEvents", "[]"));
             org.json.JSONObject nextEvent = null;
@@ -332,11 +332,11 @@ final class ScreensaverView extends View {
                 if (start < earliest) { earliest = start; nextEvent = event; }
             }
             if (nextEvent != null) {
-                eventLabel = nextEvent.optString("title", "Calendar event").replaceAll("\\s+", " ");
+                eventLabel = nextEvent.optString("title", "Takvim etkinliği").replaceAll("\\s+", " ");
                 boolean allDay = nextEvent.optBoolean("allDay", false);
-                eventDetail = (earliest <= now ? "Now · " : "Up next · ")
+                eventDetail = (earliest <= now ? "Şimdi · " : "Sıradaki · ")
                         + new SimpleDateFormat(allDay ? "EEE, d MMM" : "EEE · h:mm a", Locale.getDefault())
-                        .format(new Date(earliest)) + (allDay ? " · All day" : "");
+                        .format(new Date(earliest)) + (allDay ? " · Tüm gün" : "");
             }
         } catch (Exception ignored) { }
     }

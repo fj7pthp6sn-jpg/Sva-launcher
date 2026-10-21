@@ -53,11 +53,11 @@ final class SchedulePreferences {
     }
 
     static String label(long value, boolean slideshow, boolean supportsEveryLaunch) {
-        if (value == MANUAL) return slideshow ? "Paused" : "Manual only";
-        if (supportsEveryLaunch && value == EVERY_LAUNCH) return "Every launch";
-        if (value < MINUTE) return value / SECOND + " seconds";
-        if (value < HOUR) return value / MINUTE + (value == MINUTE ? " minute" : " minutes");
-        if (value < DAY) return value / HOUR + (value == HOUR ? " hour" : " hours");
-        return value / DAY + (value == DAY ? " day" : " days");
+        if (value == MANUAL) return slideshow ? "Duraklatıldı" : "Yalnızca elle";
+        if (supportsEveryLaunch && value == EVERY_LAUNCH) return "Her açılışta";
+        if (value < MINUTE) return value / SECOND + " saniye";
+        if (value < HOUR) return value / MINUTE + (value == MINUTE ? " dakika" : " dakika");
+        if (value < DAY) return value / HOUR + (value == HOUR ? " saat" : " saat");
+        return value / DAY + (value == DAY ? " gün" : " gün");
     }
 }

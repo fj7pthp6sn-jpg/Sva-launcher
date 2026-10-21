@@ -98,7 +98,7 @@ import org.json.JSONObject;
 
 public final class MainActivity extends Activity {
     private static final int TAB_HOME = 0, TAB_TV = 1, TAB_GAMES = 2, TAB_EVENTS = 3, TAB_SAVED = 4;
-    private static final String[] TAB_TITLES = {"Home", "Live TV", "Games", "Events", "Saved"};
+    private static final String[] TAB_TITLES = {"Ana Sayfa", "Canlı TV", "Oyunlar", "Etkinlikler", "Kaydedilenler"};
     private static final String PREF_HIDE_LIVE_TV = "hideLiveTvNavigation";
     private static final String PREF_HIDE_GAMES = "hideGamesNavigation";
     private static final String PREF_HIDE_EVENTS = "hideEventsNavigation";
@@ -365,7 +365,7 @@ public final class MainActivity extends Activity {
             matches++;
         }
         if (matches == 1) playChannel(fallback);
-        else Toast.makeText(this, "That reminder channel is no longer available.", Toast.LENGTH_LONG).show();
+        else Toast.makeText(this, "Bu hatırlatıcının kanalı artık mevcut değil.", Toast.LENGTH_LONG).show();
     }
 
     private void openGameLibrary() {
@@ -401,23 +401,23 @@ public final class MainActivity extends Activity {
     }
 
     private void exportBackup(Uri destination) {
-        Toast.makeText(this, "Creating launcher backup…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Launcher yedeği oluşturuluyor…", Toast.LENGTH_SHORT).show();
         Thread worker = new Thread(() -> {
             String error = null;
             try {
                 JSONObject backup = LauncherBackup.create(preferences,
                         getSharedPreferences("iptv", MODE_PRIVATE), iptv);
                 try (java.io.OutputStream output = getContentResolver().openOutputStream(destination, "w")) {
-                    if (output == null) throw new IllegalStateException("Could not write to that file.");
+                    if (output == null) throw new IllegalStateException("Bu dosyaya yazılamadı.");
                     output.write(backup.toString(2).getBytes(java.nio.charset.StandardCharsets.UTF_8));
                     output.flush();
                 }
             } catch (Exception e) {
-                error = e.getMessage() == null ? "Could not create the backup." : e.getMessage();
+                error = e.getMessage() == null ? "Yedek oluşturulamadı." : e.getMessage();
             }
             String result = error;
             lifecycleWork.post(() -> Toast.makeText(this,
-                    result == null ? "Backup saved." : "Backup failed: " + result,
+                    result == null ? "Yedek kaydedildi." : "Yedekleme başarısız: " + result,
                     result == null ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show());
         }, "launcher-backup-export");
         worker.setDaemon(true);
@@ -426,11 +426,11 @@ public final class MainActivity extends Activity {
 
     private void importBackup(Uri source) {
         restoringBackup = true;
-        Toast.makeText(this, "Restoring launcher backup…", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Launcher yedeği geri yükleniyor…", Toast.LENGTH_SHORT).show();
         Thread worker = new Thread(() -> {
             String error = null;
             try (java.io.InputStream input = getContentResolver().openInputStream(source)) {
-                if (input == null) throw new IllegalStateException("Could not read that file.");
+                if (input == null) throw new IllegalStateException("Bu dosya okunamadı.");
                 java.io.ByteArrayOutputStream bytes = new java.io.ByteArrayOutputStream();
                 byte[] buffer = new byte[8192];
                 int count;
@@ -438,19 +438,19 @@ public final class MainActivity extends Activity {
                 final int maxBytes = 64 * 1024 * 1024;
                 while ((count = input.read(buffer)) != -1) {
                     total += count;
-                    if (total > maxBytes) throw new IllegalArgumentException("Backup file is larger than 64 MB.");
+                    if (total > maxBytes) throw new IllegalArgumentException("Yedek dosyası 64 MB’tan büyük.");
                     bytes.write(buffer, 0, count);
                 }
                 JSONObject backup = new JSONObject(new String(bytes.toByteArray(), java.nio.charset.StandardCharsets.UTF_8));
                 LauncherBackup.restore(backup, preferences, getSharedPreferences("iptv", MODE_PRIVATE), iptv);
             } catch (Exception e) {
-                error = e.getMessage() == null ? "Could not restore that backup." : e.getMessage();
+                error = e.getMessage() == null ? "Bu yedek geri yüklenemedi." : e.getMessage();
             }
             String result = error;
             lifecycleWork.post(() -> {
                 restoringBackup = false;
                 if (result != null) {
-                    Toast.makeText(this, "Restore failed: " + result, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Geri yükleme başarısız: " + result, Toast.LENGTH_LONG).show();
                     return;
                 }
                 hiddenChannelKeys.clear();
@@ -468,7 +468,7 @@ public final class MainActivity extends Activity {
                         settingsScreen.channelAdapter.refresh();
                     }
                 }
-                Toast.makeText(this, "Backup restored.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Yedek geri yüklendi.", Toast.LENGTH_SHORT).show();
                 recreate();
             });
         }, "launcher-backup-import");
@@ -772,7 +772,7 @@ public final class MainActivity extends Activity {
         weatherPanel.setClipChildren(false);
         weatherPanel.setClipToPadding(false);
         weatherPanel.setPadding(0, 0, 0, 0);
-        weatherPanel.setContentDescription("Weather unavailable");
+        weatherPanel.setContentDescription("Hava durumu alınamıyor");
         weatherSymbol = label("☀", compactNavigation ? 36 : 42, 0xFFFFBD38, true);
         weatherSymbol.setGravity(Gravity.CENTER);
         weatherPanel.addView(weatherSymbol, new LinearLayout.LayoutParams(dp(60), -1));
@@ -782,14 +782,14 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams weatherCopyParams = new LinearLayout.LayoutParams(0, -2, 1);
         weatherCopyParams.leftMargin = dp(6);
         weatherPanel.addView(weatherCopy, weatherCopyParams);
-        weatherTemperature = label("Add weather", 16, light ? LiquidTheme.text(this) : Color.WHITE, true);
+        weatherTemperature = label("Hava durumu ekle", 16, light ? LiquidTheme.text(this) : Color.WHITE, true);
         weatherTemperature.setTypeface(Typeface.create(LiquidTheme.font(this), Typeface.BOLD));
         weatherTemperature.setTextColor(light ? LiquidTheme.text(this) : Color.WHITE);
         weatherTemperature.setIncludeFontPadding(false);
         weatherTemperature.setSingleLine(true);
         weatherTemperature.setMaxWidth(dp(weatherMaxWidth));
         weatherCopy.addView(weatherTemperature);
-        weatherCondition = label("Local conditions", 13, light ? LiquidTheme.secondaryText(this) : 0xFFCCD0D6, false);
+        weatherCondition = label("Yerel hava koşulları", 13, light ? LiquidTheme.secondaryText(this) : 0xFFCCD0D6, false);
         weatherCondition.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         weatherCondition.setIncludeFontPadding(false);
         weatherCondition.setSingleLine(true);
@@ -816,10 +816,10 @@ public final class MainActivity extends Activity {
         systemShortcuts.setClipToPadding(false);
         systemShortcuts.setPadding(dp(3), dp(3), dp(3), dp(3));
         navbar.addView(systemShortcuts, new LinearLayout.LayoutParams(-2, dp(52)));
-        addTopIcon(systemShortcuts, "Network", R.drawable.ic_network, this::openNetworkSettings);
-        addTopIcon(systemShortcuts, "TV Input", R.drawable.ic_tv_input, this::openTvInputs);
-        addTopIcon(systemShortcuts, "Android Settings", R.drawable.ic_android_settings, this::openAndroidSettings);
-        addTopIcon(systemShortcuts, "Launcher Settings", R.drawable.ic_launcher_settings, this::showSettings);
+        addTopIcon(systemShortcuts, "Ağ", R.drawable.ic_network, this::openNetworkSettings);
+        addTopIcon(systemShortcuts, "TV Girişi", R.drawable.ic_tv_input, this::openTvInputs);
+        addTopIcon(systemShortcuts, "Android Ayarları", R.drawable.ic_android_settings, this::openAndroidSettings);
+        addTopIcon(systemShortcuts, "Launcher Ayarları", R.drawable.ic_launcher_settings, this::showSettings);
         FrameLayout viewport = new FrameLayout(this);
         viewport.setClipChildren(false);
         viewport.setClipToPadding(false);
@@ -873,14 +873,14 @@ public final class MainActivity extends Activity {
         calendarCopy.setOrientation(LinearLayout.VERTICAL);
         calendarCopy.setGravity(Gravity.CENTER_VERTICAL);
         homeCalendarCard.addView(calendarCopy, new LinearLayout.LayoutParams(0, -2, 1));
-        homeCalendarEyebrow = label("UP NEXT", 10, light ? LiquidTheme.secondaryText(this) : 0xFFBEC4CD, false);
+        homeCalendarEyebrow = label("SIRADAKİ", 10, light ? LiquidTheme.secondaryText(this) : 0xFFBEC4CD, false);
         calendarCopy.addView(homeCalendarEyebrow);
-        homeCalendarTitle = label("No events today", 16, light ? LiquidTheme.text(this) : Color.WHITE, true);
+        homeCalendarTitle = label("Bugün etkinlik yok", 16, light ? LiquidTheme.text(this) : Color.WHITE, true);
         homeCalendarTitle.setSingleLine(true);
         homeCalendarTitle.setMaxLines(1);
         homeCalendarTitle.setEllipsize(TextUtils.TruncateAt.END);
         calendarCopy.addView(homeCalendarTitle);
-        homeCalendarSubtitle = label("Open your calendar", 11, light ? LiquidTheme.secondaryText(this) : 0xFFBCCBD0, false);
+        homeCalendarSubtitle = label("Takvimini aç", 11, light ? LiquidTheme.secondaryText(this) : 0xFFBCCBD0, false);
         homeCalendarSubtitle.setSingleLine(true);
         homeCalendarSubtitle.setEllipsize(TextUtils.TruncateAt.END);
         calendarCopy.addView(homeCalendarSubtitle);
@@ -911,7 +911,7 @@ public final class MainActivity extends Activity {
         nowPlayingSection.setVisibility(View.GONE);
         nowPlayingSection.setClipChildren(false);
         nowPlayingSection.setClipToPadding(false);
-        TextView musicLabel = label("NOW PLAYING", 11, light ? LiquidTheme.accent(this) : 0xFF8BE4F5, true);
+        TextView musicLabel = label("ŞİMDİ ÇALIYOR", 11, light ? LiquidTheme.accent(this) : 0xFF8BE4F5, true);
         musicLabel.setLetterSpacing(.18f);
         LinearLayout.LayoutParams musicLabelParams = new LinearLayout.LayoutParams(-1, -2);
         musicLabelParams.topMargin = dp(10);
@@ -949,7 +949,7 @@ public final class MainActivity extends Activity {
         musicToggle = actionButton("Ⅱ");
         musicToggle.setTextColor(LiquidTheme.accent(this));
         musicToggle.setOnFocusChangeListener(LiquidTheme::animateContainedFocus);
-        musicToggle.setContentDescription("Pause playback");
+        musicToggle.setContentDescription("Oynatmayı duraklat");
         musicToggle.setOnClickListener(v -> toggleMediaPlayback());
         LinearLayout.LayoutParams musicToggleParams = new LinearLayout.LayoutParams(dp(36), dp(40));
         musicToggleParams.setMargins(dp(4), dp(2), dp(4), dp(2));
@@ -1025,7 +1025,7 @@ public final class MainActivity extends Activity {
         gamesHeading.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         gamesHeading.setClipChildren(false);
         gamesHeading.setClipToPadding(false);
-        Button seeAllGames = actionButton("Import games");
+        Button seeAllGames = actionButton("Oyunları içe aktar");
         seeAllGames.setOnFocusChangeListener(LiquidTheme::animateContainedFocus);
         seeAllGames.setOnClickListener(v -> openGameLibrary());
         linkTabEntry(TAB_GAMES, seeAllGames);
@@ -1035,7 +1035,7 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams gamesHeadingParams = new LinearLayout.LayoutParams(-1, dp(56));
         gamesHeadingParams.topMargin = dp(14);
         gamesContent.addView(gamesHeading, gamesHeadingParams);
-        gamesEmpty = label("No games yet. Import your own .nes files to get started.", 17, MUTED, false);
+        gamesEmpty = label("Henüz oyun yok. Başlamak için kendi .nes dosyalarınızı içe aktarın.", 17, MUTED, false);
         gamesEmpty.setPadding(dp(8), dp(20), 0, dp(20));
         gamesContent.addView(gamesEmpty);
         gameGrid = new GridLayout(this);
@@ -1057,15 +1057,15 @@ public final class MainActivity extends Activity {
         LinearLayout titleGroup = new LinearLayout(this);
         titleGroup.setOrientation(LinearLayout.VERTICAL);
         titleGroup.setGravity(Gravity.CENTER_VERTICAL);
-        TextView liveTitle = label("Live TV", 32, LiquidTheme.text(this), true);
+        TextView liveTitle = label("Canlı TV", 32, LiquidTheme.text(this), true);
         liveTitle.setTypeface(LiquidTheme.font(this));
         titleGroup.addView(liveTitle);
-        guideEmpty = label("Explore the schedule, see what's on now, and set reminders.", 13, MUTED, false);
+        guideEmpty = label("Yayın akışına göz atın, şu an neler yayında görün ve hatırlatıcı kurun.", 13, MUTED, false);
         titleGroup.addView(guideEmpty);
         liveHeading.addView(titleGroup, new LinearLayout.LayoutParams(0, -2, 1));
 
-        guideToggle = actionButton("Open TV guide  →");
-        guideToggle.setContentDescription("Open full-screen TV guide");
+        guideToggle = actionButton("TV rehberini aç  →");
+        guideToggle.setContentDescription("Tam ekran TV rehberini aç");
         guideToggle.setOnFocusChangeListener(LiquidTheme::animateContainedFocus);
         guideToggle.setOnClickListener(view -> openTvGuide());
         linkTabEntry(TAB_TV, guideToggle);
@@ -1094,9 +1094,9 @@ public final class MainActivity extends Activity {
         channelCategoryTabs.setClipToPadding(false);
         channelCategoryScroll.addView(channelCategoryTabs, new HorizontalScrollView.LayoutParams(-2, -1));
         channelRows.addView(channelCategoryScroll, new LinearLayout.LayoutParams(-1, dp(50)));
-        channelsEmpty = label("Add a playlist in Settings to browse live TV.", 15, MUTED, false);
+        channelsEmpty = label("Canlı TV’ye göz atmak için Ayarlar’dan bir liste ekleyin.", 15, MUTED, false);
         channelsEmpty.setPadding(0, dp(16), 0, dp(20));
-        status = label("Add an M3U and optional XMLTV URL in Settings to get started.", 15, MUTED, false);
+        status = label("Başlamak için Ayarlar’dan bir M3U ve isteğe bağlı XMLTV adresi ekleyin.", 15, MUTED, false);
         status.setPadding(0, dp(12), 0, 0);
         liveContent.addView(status);
 
@@ -1108,7 +1108,7 @@ public final class MainActivity extends Activity {
         youtubeTitleRow.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
         youtubeTitleRow.setClipChildren(false);
         youtubeTitleRow.setClipToPadding(false);
-        Button addYouTube = actionButton("Add shortcut");
+        Button addYouTube = actionButton("Kısayol ekle");
         addYouTube.setOnFocusChangeListener(LiquidTheme::animateContainedFocus);
         addYouTube.setOnClickListener(v -> openYouTubeSettings());
         linkTabEntry(TAB_SAVED, addYouTube);
@@ -1132,7 +1132,7 @@ public final class MainActivity extends Activity {
         youtubeScroll.addView(youtubeRow);
         youtubeSection.addView(youtubeScroll, new LinearLayout.LayoutParams(-1, dp(230)));
         savedContent.addView(youtubeSection, youtubeSectionParams);
-        youtubeEmpty = label("No saved YouTube shortcuts yet. Add a video or playlist in Settings.", 17, MUTED, false);
+        youtubeEmpty = label("Henüz kayıtlı YouTube kısayolu yok. Ayarlar’dan bir video veya oynatma listesi ekleyin.", 17, MUTED, false);
         youtubeEmpty.setPadding(dp(8), dp(16), 0, dp(16));
         savedContent.addView(youtubeEmpty);
         renderYouTubeCards();
@@ -1556,7 +1556,7 @@ public final class MainActivity extends Activity {
         Button backButton = actionButton("‹");
         backButton.setTextSize(30);
         alignCalendarArrow(backButton);
-        backButton.setContentDescription("Back to Home");
+        backButton.setContentDescription("Ana Sayfa’ya dön");
         backButton.setBackground(calendarGlassShape(
                 light ? LiquidTheme.surface(this) : 0xC91A1D26,
                 light ? LiquidTheme.border(this) : 0xAAFFFFFF, 28));
@@ -1565,7 +1565,7 @@ public final class MainActivity extends Activity {
         LinearLayout.LayoutParams backParams = new LinearLayout.LayoutParams(dp(52), dp(52));
         backParams.setMargins(dp(2), dp(2), dp(14), dp(2));
         monthHeading.addView(backButton, backParams);
-        monthTitle = label("Calendar", 32, Color.WHITE, true);
+        monthTitle = label("Takvim", 32, Color.WHITE, true);
         monthTitle.setTextColor(LiquidTheme.text(this));
         monthHeading.addView(monthTitle, new LinearLayout.LayoutParams(-2, -2));
         LinearLayout eventSummary = new LinearLayout(this);
@@ -1592,12 +1592,12 @@ public final class MainActivity extends Activity {
         previousMonthButton = actionButton("‹");
         previousMonthButton.setTextSize(28);
         alignCalendarArrow(previousMonthButton);
-        previousMonthButton.setContentDescription("Previous month");
+        previousMonthButton.setContentDescription("Önceki ay");
         styleCalendarHeaderControl(previousMonthButton);
         LinearLayout.LayoutParams prevParams = new LinearLayout.LayoutParams(dp(46), dp(46));
         prevParams.setMargins(dp(3), dp(3), dp(1), dp(3));
         monthSwitcher.addView(previousMonthButton, prevParams);
-        Button todayButton = actionButton("Today");
+        Button todayButton = actionButton("Bugün");
         todayButton.setTextSize(14);
         styleCalendarHeaderControl(todayButton);
         todayButton.setOnClickListener(v -> {
@@ -1611,7 +1611,7 @@ public final class MainActivity extends Activity {
         nextMonthButton = actionButton("›");
         nextMonthButton.setTextSize(28);
         alignCalendarArrow(nextMonthButton);
-        nextMonthButton.setContentDescription("Next month");
+        nextMonthButton.setContentDescription("Sonraki ay");
         styleCalendarHeaderControl(nextMonthButton);
         nextMonthButton.setId(View.generateViewId());
         LinearLayout.LayoutParams nextParams = new LinearLayout.LayoutParams(dp(46), dp(46));
@@ -1762,7 +1762,7 @@ public final class MainActivity extends Activity {
         for (PublicCalendarRepository.Event event : cachedCalendarEvents()) {
             if (CalendarDates.includes(event, day, zone)) titles.add(event.title);
         }
-        calendarHeaderEvents.setText(titles.isEmpty() ? "No events planned" : TextUtils.join(" · ", titles));
+        calendarHeaderEvents.setText(titles.isEmpty() ? "Planlı etkinlik yok" : TextUtils.join(" · ", titles));
     }
 
     private void selectCalendarDay(LocalDate day) {
@@ -1882,7 +1882,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
     calendarDetailMoon.setText(moon.symbol);
     calendarDetailMoonName.setText(moon.name);
     calendarDetailIllumination.setText(
-            "Lunar illumination  ·  " + moon.illumination + "%"
+            "Ay aydınlanması  ·  " + moon.illumination + "%"
     );
 
     // ---------------------------------------------------------
@@ -1929,7 +1929,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         DateFormat format = preferences.getBoolean("24h", false)
                 ? new java.text.SimpleDateFormat("HH:mm", Locale.getDefault())
                 : new java.text.SimpleDateFormat("h:mm a", Locale.getDefault());
-        String timing = event.allDay ? "All day" : format.format(new Date(event.startMs))
+        String timing = event.allDay ? "Tüm gün" : format.format(new Date(event.startMs))
                 + " – " + format.format(new Date(event.endMs));
         card.addView(label(timing, 13, LiquidTheme.secondaryText(this), false));
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
@@ -2375,7 +2375,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         String title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE);
         String artist = metadata.getString(MediaMetadata.METADATA_KEY_ARTIST);
         musicTitle.setText(TextUtils.isEmpty(title) ? controller.getPackageName() : title);
-        musicArtist.setText(TextUtils.isEmpty(artist) ? "Playing on your TV" : artist);
+        musicArtist.setText(TextUtils.isEmpty(artist) ? "TV’nizde çalıyor" : artist);
         android.graphics.Bitmap artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ART);
         if (artwork == null) artwork = metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART);
         if (artwork != null) musicArtwork.setImageBitmap(artwork);
@@ -2390,7 +2390,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 ? (int) Math.min(1000, Math.max(0, position * 1000 / duration)) : 0);
         boolean playing = state.getState() == PlaybackState.STATE_PLAYING;
         musicToggle.setText(playing ? "Ⅱ" : "▶");
-        musicToggle.setContentDescription(playing ? "Pause playback" : "Resume playback");
+        musicToggle.setContentDescription(playing ? "Oynatmayı duraklat" : "Oynatmaya devam et");
     }
 
     private void toggleMediaPlayback() {
@@ -2405,7 +2405,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         try {
             startActivity(new Intent(android.provider.Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
         } catch (android.content.ActivityNotFoundException missing) {
-            Toast.makeText(this, "Open Android Settings and allow Sva Now Playing notification access.",
+            Toast.makeText(this, "Android Ayarları’nı açın ve Sva’ya “Şimdi Çalıyor” bildirim erişimi verin.",
                     Toast.LENGTH_LONG).show();
         }
     }
@@ -2419,7 +2419,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         double latitude = Double.longBitsToDouble(preferences.getLong("weatherLatitude", Double.doubleToRawLongBits(Double.NaN)));
         double longitude = Double.longBitsToDouble(preferences.getLong("weatherLongitude", Double.doubleToRawLongBits(Double.NaN)));
         if (!WeatherRepository.validCoordinates(latitude, longitude)) return null;
-        return new WeatherRepository.Location(preferences.getString("weatherLocationLabel", "Weather"), latitude, longitude);
+        return new WeatherRepository.Location(preferences.getString("weatherLocationLabel", "Hava Durumu"), latitude, longitude);
     }
 
     private WeatherRepository.Forecast cachedWeather() {
@@ -2432,10 +2432,10 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         boolean light = LiquidTheme.isLight(this);
         if (weatherForecast == null) {
             weatherSymbol.setText("☀");
-            weatherTemperature.setText(hasWeatherLocation() ? "Weather unavailable" : "Weather not set");
+            weatherTemperature.setText(hasWeatherLocation() ? "Hava durumu alınamıyor" : "Hava durumu ayarlanmadı");
             weatherTemperature.setTextSize(compactNavigation ? 14 : 16);
             weatherTemperature.setTextColor(light ? LiquidTheme.text(this) : 0xFFF5FAF8);
-            weatherCondition.setText(hasWeatherLocation() ? "Refresh in Settings" : "Configure in Settings");
+            weatherCondition.setText(hasWeatherLocation() ? "Ayarlar’dan yenile" : "Ayarlar’dan yapılandır");
             weatherCondition.setVisibility(View.VISIBLE);
             weatherLocation.setText("");
             weatherMetrics.setText("");
@@ -2461,13 +2461,13 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 : weatherForecast.apparentTemperature;
         weatherCondition.setText(WeatherRepository.condition(weatherForecast.code));
         weatherCondition.setVisibility(View.VISIBLE);
-        weatherDetails.setText("Feels like " + Math.round(apparent) + (fahrenheit ? "°F" : "°C"));
+        weatherDetails.setText("Hissedilen " + Math.round(apparent) + (fahrenheit ? "°F" : "°C"));
         weatherDetails.setVisibility(View.VISIBLE);
         weatherLocation.setText("⌖  " + weatherForecast.location);
         weatherMetrics.setText("≋  " + Math.round(wind) + (mph ? " mph" : " km/h")
                 + (weatherForecast.humidity >= 0 ? "    💧 " + weatherForecast.humidity + "%" : ""));
         weatherPanel.setContentDescription(weatherTemperature.getText() + ". " + weatherCondition.getText()
-                + ". " + weatherForecast.location + ". Wind " + Math.round(wind)
+                + ". " + weatherForecast.location + ". Rüzgâr " + Math.round(wind)
                 + (mph ? " mph" : " km/h") + ".");
     }
 
@@ -2491,8 +2491,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         AlertDialog dialog = new AlertDialog.Builder(new android.view.ContextThemeWrapper(this,
                 R.style.SvaDeviceAlertDialogTheme))
                 .setTitle(weatherForecast.location)
-                .setMessage(details.length() > 0 ? details.toString() : "Forecast unavailable")
-                .setPositiveButton("Close", null)
+                .setMessage(details.length() > 0 ? details.toString() : "Tahmin alınamıyor")
+                .setPositiveButton("Kapat", null)
                 .create();
         Motion.dialog(dialog); dialog.show();
         styleDialog(dialog);
@@ -2520,11 +2520,11 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         weatherRefreshing = true;
         preferences.edit().putLong("weatherAttemptedAt", System.currentTimeMillis()).apply();
         int generation = ++weatherRequestGeneration;
-        if (settingsScreen != null) settingsScreen.setWeatherFeedback("Refreshing weather…");
+        if (settingsScreen != null) settingsScreen.setWeatherFeedback("Hava durumu yenileniyor…");
         lifecycleWork.execute(ioWorker, () -> {
             WeatherRepository.Forecast forecast = null; String error = null;
             try { forecast = WeatherRepository.fetch(location, System.currentTimeMillis()); }
-            catch (Exception failure) { error = failure.getMessage() == null ? "Could not refresh weather." : failure.getMessage(); }
+            catch (Exception failure) { error = failure.getMessage() == null ? "Hava durumu yenilenemedi." : failure.getMessage(); }
             WeatherRepository.Forecast result = forecast; String resultError = error;
             lifecycleWork.post(() -> {
                 if (generation != weatherRequestGeneration || isFinishing() || isDestroyed()) return;
@@ -2534,8 +2534,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     try { preferences.edit().putString("weatherCache", result.toJson().toString())
                             .putLong("weatherUpdatedAt", result.fetchedAt).apply(); } catch (Exception ignored) { }
                     renderWeather();
-                    if (settingsScreen != null) settingsScreen.setWeatherFeedback("Weather refreshed.");
-                } else if (settingsScreen != null) settingsScreen.setWeatherFeedback("Refresh failed · " + resultError);
+                    if (settingsScreen != null) settingsScreen.setWeatherFeedback("Hava durumu yenilendi.");
+                } else if (settingsScreen != null) settingsScreen.setWeatherFeedback("Yenileme başarısız · " + resultError);
                 scheduleWeatherRefresh();
             });
         });
@@ -2582,11 +2582,11 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         }
         cancelWeatherLocation();
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (manager == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Location is unavailable on this TV."); return; }
+        if (manager == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Bu TV’de konum kullanılamıyor."); return; }
         String provider = manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ? LocationManager.NETWORK_PROVIDER
                 : manager.isProviderEnabled(LocationManager.GPS_PROVIDER) ? LocationManager.GPS_PROVIDER : null;
-        if (provider == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Turn on Android location services first."); return; }
-        if (settingsScreen != null) settingsScreen.setWeatherFeedback("Finding this TV’s location…");
+        if (provider == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Önce Android konum hizmetlerini açın."); return; }
+        if (settingsScreen != null) settingsScreen.setWeatherFeedback("Bu TV’nin konumu bulunuyor…");
         try {
             if (Build.VERSION.SDK_INT >= 30) {
                 weatherLocationCancellation = new CancellationSignal();
@@ -2597,20 +2597,20 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             }
             weatherLocationTimeout = () -> {
                 cancelWeatherLocation();
-                if (settingsScreen != null) settingsScreen.setWeatherFeedback("Location timed out. Try city search instead.");
+                if (settingsScreen != null) settingsScreen.setWeatherFeedback("Konum zaman aşımına uğradı. Bunun yerine şehir araması deneyin.");
             };
             handler.postDelayed(weatherLocationTimeout, 10000);
         } catch (SecurityException error) {
-            if (settingsScreen != null) settingsScreen.setWeatherFeedback("Location permission was not granted.");
+            if (settingsScreen != null) settingsScreen.setWeatherFeedback("Konum izni verilmedi.");
         }
     }
 
     private void acceptWeatherLocation(android.location.Location location) {
         cancelWeatherLocation();
-        if (location == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Could not determine this TV’s location."); return; }
+        if (location == null) { if (settingsScreen != null) settingsScreen.setWeatherFeedback("Bu TV’nin konumu belirlenemedi."); return; }
         double latitude = location.getLatitude(), longitude = location.getLongitude();
         lifecycleWork.execute(ioWorker, () -> {
-            String label = "Current location";
+            String label = "Mevcut konum";
             try {
                 List<Address> addresses = new Geocoder(this, Locale.getDefault()).getFromLocation(latitude, longitude, 1);
                 if (addresses != null && !addresses.isEmpty()) {
@@ -2641,7 +2641,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         if (requestCode != REQUEST_WEATHER_LOCATION) return;
         boolean granted = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
         if (pendingDeviceWeatherLocation && granted) requestDeviceWeatherLocation();
-        else if (!granted && settingsScreen != null) settingsScreen.setWeatherFeedback("Location denied. Search for a city instead.");
+        else if (!granted && settingsScreen != null) settingsScreen.setWeatherFeedback("Konum reddedildi. Bunun yerine bir şehir arayın.");
         pendingDeviceWeatherLocation = false;
     }
 
@@ -2654,7 +2654,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 if (value == null) continue;
                 long start = value.optLong("start", 0L), end = value.optLong("end", 0L);
                 if (end > start) events.add(new PublicCalendarRepository.Event(
-                        value.optString("title", "Calendar event"), start, end,
+                        value.optString("title", "Takvim etkinliği"), start, end,
                         value.optBoolean("allDay", false)));
             }
         } catch (Exception ignored) { }
@@ -2675,25 +2675,25 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             if (event.startMs > System.currentTimeMillis()) { nextEvent = event; break; }
         }
         if (todayEvent != null) {
-            homeCalendarEyebrow.setText("TODAY");
+            homeCalendarEyebrow.setText("BUGÜN");
             homeCalendarTitle.setText(todayEvent.title);
-            homeCalendarSubtitle.setText(todayEvent.allDay ? "All day"
+            homeCalendarSubtitle.setText(todayEvent.allDay ? "Tüm gün"
                     : new java.text.SimpleDateFormat("h:mm a", Locale.getDefault()).format(new Date(todayEvent.startMs)));
         } else if (nextEvent != null) {
-            homeCalendarEyebrow.setText("UP NEXT");
+            homeCalendarEyebrow.setText("SIRADAKİ");
             homeCalendarTitle.setText(nextEvent.title);
             homeCalendarSubtitle.setText(new java.text.SimpleDateFormat("EEE · h:mm a", Locale.getDefault())
                     .format(new Date(nextEvent.startMs)));
         } else {
-            homeCalendarEyebrow.setText("TODAY");
-            homeCalendarTitle.setText("No events today");
+            homeCalendarEyebrow.setText("BUGÜN");
+            homeCalendarTitle.setText("Bugün etkinlik yok");
             homeCalendarSubtitle.setText(preferences.getString("publicCalendarUrl", "").isEmpty()
-                    ? "Add a calendar in Settings" : "Your calendar is clear");
+                    ? "Ayarlar’dan bir takvim ekleyin" : "Takviminiz boş");
         }
     }
 
     private String wrapHomeCalendarTitle(String value) {
-        String clean = value == null ? "Calendar event" : value.trim().replaceAll("\\s+", " ");
+        String clean = value == null ? "Takvim etkinliği" : value.trim().replaceAll("\\s+", " ");
         String[] words = clean.split(" ");
         StringBuilder result = new StringBuilder();
         StringBuilder line = new StringBuilder();
@@ -2734,7 +2734,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             if (refreshed) edit.putLong("publicCalendarUpdatedAt", System.currentTimeMillis());
             edit.apply();
             updateCalendarEventDisplay();
-        } catch (Exception failure) { throw new IllegalStateException("Could not save calendar cache.", failure); }
+        } catch (Exception failure) { throw new IllegalStateException("Takvim önbelleği kaydedilemedi.", failure); }
     }
 
     private void cancelCalendarRefresh() {
@@ -2831,7 +2831,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         if (appRow == null || appsLoading) return;
         appsLoading = true;
         appRow.removeAllViews();
-        TextView loading = label("Loading apps…", 15, MUTED, false);
+        TextView loading = label("Uygulamalar yükleniyor…", 15, MUTED, false);
         loading.setGravity(Gravity.CENTER_VERTICAL);
         appRow.addView(loading, new LinearLayout.LayoutParams(dp(180), dp(72)));
         lifecycleWork.execute(ioWorker, () -> {
@@ -2955,7 +2955,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             });
         }
         if (selected.isEmpty()) {
-            TextView empty = label("No apps selected", 15, MUTED, false);
+            TextView empty = label("Seçili uygulama yok", 15, MUTED, false);
             empty.setGravity(Gravity.CENTER_VERTICAL);
             appRow.addView(empty, new LinearLayout.LayoutParams(dp(240), dp(72)));
         }
@@ -3055,9 +3055,9 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             fallback.setEllipsize(android.text.TextUtils.TruncateAt.END);
             fallback.setPadding(dp(15), dp(34), dp(15), dp(14));
             if (!light) fallback.setShadowLayer(dp(8), 0, dp(2), Color.BLACK);
-            fallback.setContentDescription("Artwork: " + card.title);
+            fallback.setContentDescription("Kapak görseli: " + card.title);
             poster.addView(fallback, new FrameLayout.LayoutParams(-1, -1));
-            TextView type = label(YouTubeCard.VIDEO.equals(card.type) ? "VIDEO" : "PLAYLIST",
+            TextView type = label(YouTubeCard.VIDEO.equals(card.type) ? "VİDEO" : "OYNATMA LİSTESİ",
                     9, light ? LiquidTheme.accent(this) : Color.WHITE, true);
             type.setTextColor(light ? LiquidTheme.accent(this) : Color.WHITE);
             type.setLetterSpacing(.10f);
@@ -3075,7 +3075,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 title.setPadding(dp(3), dp(6), dp(3), 0);
                 tile.addView(title, new LinearLayout.LayoutParams(dp(224), dp(52)));
             }
-            tile.setContentDescription((YouTubeCard.VIDEO.equals(card.type) ? "Play video: " : "Open playlist: ") + card.title);
+            tile.setContentDescription((YouTubeCard.VIDEO.equals(card.type) ? "Videoyu oynat: " : "Oynatma listesini aç: ") + card.title);
             tile.setOnClickListener(view -> launchYouTubeCard(card));
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dp(240), dp(198));
             params.setMargins(dp(4), dp(4), dp(14), dp(8));
@@ -3104,9 +3104,9 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         try {
             Intent browser = new Intent(Intent.ACTION_VIEW, target);
             if (browser.resolveActivity(getPackageManager()) != null) startActivity(browser);
-            else Toast.makeText(this, "No app can open this YouTube link.", Toast.LENGTH_LONG).show();
+            else Toast.makeText(this, "Bu YouTube bağlantısını açabilecek uygulama yok.", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            Toast.makeText(this, "Could not open this YouTube link.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Bu YouTube bağlantısı açılamadı.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -3345,16 +3345,16 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 CharSequence name = input.loadCustomLabel(this);
                 if (TextUtils.isEmpty(name)) name = input.loadLabel(this);
                 inputs.add(input);
-                labels.add(TextUtils.isEmpty(name) ? "TV input" : name);
+                labels.add(TextUtils.isEmpty(name) ? "TV girişi" : name);
             }
         } catch (SecurityException unavailable) {
             // Some TV manufacturers restrict input discovery to their system apps.
         }
         AlertDialog.Builder builder = new AlertDialog.Builder(new android.view.ContextThemeWrapper(this,
-                LiquidTheme.alertDialogTheme(this))).setTitle("TV Input");
+                LiquidTheme.alertDialogTheme(this))).setTitle("TV Girişi");
         if (inputs.isEmpty()) {
-            builder.setMessage("No TV inputs are available to Sva on this device. Use the Input / Source button on your TV remote.")
-                    .setPositiveButton("OK", null);
+            builder.setMessage("Bu cihazda Sva için kullanılabilir TV girişi yok. TV kumandanızdaki Giriş / Kaynak tuşunu kullanın.")
+                    .setPositiveButton("Tamam", null);
         } else {
             builder.setItems(labels.toArray(new CharSequence[0]), (ignored, index) -> {
                 android.media.tv.TvInputInfo input = inputs.get(index);
@@ -3363,9 +3363,9 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                         : android.media.tv.TvContract.buildChannelsUriForInput(input.getId());
                 try { startActivity(new Intent(Intent.ACTION_VIEW, uri)); }
                 catch (android.content.ActivityNotFoundException | SecurityException unavailable) {
-                    Toast.makeText(this, "This TV cannot open that source from Sva. Use the Input / Source button on your TV remote.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Bu TV, kaynağı Sva üzerinden açamıyor. TV kumandanızdaki Giriş / Kaynak tuşunu kullanın.", Toast.LENGTH_LONG).show();
                 }
-            }).setNegativeButton("Cancel", null);
+            }).setNegativeButton("İptal", null);
         }
         AlertDialog dialog = builder.create();
         Motion.dialog(dialog); dialog.show(); styleDialog(dialog);
@@ -3523,13 +3523,13 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         }
         for (IptvRepository.Channel channel : channels) {
             if (HiddenChannels.isHidden(hiddenChannelKeys, channel)) continue;
-            String category = channel.group.trim().isEmpty() ? "Uncategorized" : channel.group.trim();
+            String category = channel.group.trim().isEmpty() ? "Kategorisiz" : channel.group.trim();
             grouped.computeIfAbsent(category, ignored -> new ArrayList<>()).add(channel);
         }
         if (grouped.isEmpty()) {
             channelsEmpty.setText(channels.isEmpty()
-                    ? "Add a playlist in Settings to browse live TV."
-                    : "All channels are hidden. Restore channels in Settings.");
+                    ? "Canlı TV’ye göz atmak için Ayarlar’dan bir liste ekleyin."
+                    : "Tüm kanallar gizli. Kanalları Ayarlar’dan geri getirin.");
             if (!renderedCategories.isEmpty() || channelRows.getChildCount() != 1 || channelRows.getChildAt(0) != channelsEmpty) {
                 channelRows.removeAllViews();
                 channelRowMap.clear();
@@ -3591,8 +3591,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
     private void renderGuide() {
         if (guideEmpty == null) return;
-        guideEmpty.setText(channels.isEmpty() ? "Add a playlist and programme guide in Settings."
-                : "Explore the schedule, see what's on now, and set reminders.");
+        guideEmpty.setText(channels.isEmpty() ? "Ayarlar’dan bir liste ve program rehberi ekleyin."
+                : "Yayın akışına göz atın, şu an neler yayında görün ve hatırlatıcı kurun.");
     }
 
     private Button createChannelCategoryTab(String category) {
@@ -3642,7 +3642,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         ArrayList<IptvRepository.Channel> selected = new ArrayList<>();
         for (IptvRepository.Channel channel : channels) {
             if (HiddenChannels.isHidden(hiddenChannelKeys, channel)) continue;
-            String channelCategory = channel.group.trim().isEmpty() ? "Uncategorized" : channel.group.trim();
+            String channelCategory = channel.group.trim().isEmpty() ? "Kategorisiz" : channel.group.trim();
             if (category.equals(channelCategory)) selected.add(channel);
         }
         return selected;
@@ -3695,16 +3695,16 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 if (generation != backgroundFolderGeneration || isFinishing()) return;
                 if (!scan.success) {
                     if (userSelected) Toast.makeText(this,
-                            "Could not read that folder. Keeping the saved slideshow.", Toast.LENGTH_LONG).show();
+                            "Bu klasör okunamadı. Kayıtlı slayt gösterisi korunuyor.", Toast.LENGTH_LONG).show();
                     return;
                 }
                 cacheBackgroundFolder(treeUri.toString(), scan.photos);
                 if (!sameBackgroundPhotos(scan.photos)) setBackgroundPhotos(scan.photos);
                 if (settingsScreen != null) settingsScreen.refreshAppearance();
                 if (userSelected && scan.photos.isEmpty()) {
-                    Toast.makeText(this, "No images were found in that folder.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Bu klasörde görsel bulunamadı.", Toast.LENGTH_LONG).show();
                 } else if (userSelected) {
-                    Toast.makeText(this, "Background slideshow updated · " + scan.photos.size() + " photos", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Arka plan slayt gösterisi güncellendi · " + scan.photos.size() + " fotoğraf", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -3720,17 +3720,17 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             String failure = null;
             try {
                 List<String> urls = GooglePhotosAlbumRepository.fetchImageUrls(shareUrl);
-                if (urls.isEmpty()) throw new IllegalStateException("No photos were found. Check that link sharing is on.");
-                for (int i = 0; i < urls.size(); i++) photos.add(new BackgroundPhoto(Uri.parse(urls.get(i)), "Google Photos " + (i + 1)));
+                if (urls.isEmpty()) throw new IllegalStateException("Fotoğraf bulunamadı. Bağlantı paylaşımının açık olduğundan emin olun.");
+                for (int i = 0; i < urls.size(); i++) photos.add(new BackgroundPhoto(Uri.parse(urls.get(i)), "Google Fotoğraflar " + (i + 1)));
             } catch (Exception e) {
-                failure = e.getMessage() == null ? "Could not load that Google Photos album." : e.getMessage();
+                failure = e.getMessage() == null ? "Bu Google Fotoğraflar albümü yüklenemedi." : e.getMessage();
             }
             List<BackgroundPhoto> result = photos;
             String error = failure;
             lifecycleWork.post(() -> {
                 if (generation != backgroundFolderGeneration || isFinishing()) return;
                 if (error != null || result.isEmpty()) {
-                    if (userSelected) Toast.makeText(this, error == null ? "No public photos were found in that album." : error, Toast.LENGTH_LONG).show();
+                    if (userSelected) Toast.makeText(this, error == null ? "Bu albümde herkese açık fotoğraf bulunamadı." : error, Toast.LENGTH_LONG).show();
                     return;
                 }
                 cacheBackgroundAlbum(shareUrl, result);
@@ -3738,7 +3738,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                         .putLong("googlePhotosUpdatedAt", System.currentTimeMillis()).apply();
                 if (!sameBackgroundPhotos(result)) setBackgroundPhotos(result);
                 if (settingsScreen != null) settingsScreen.refreshAppearance();
-                if (userSelected) Toast.makeText(this, "Google Photos slideshow updated · " + result.size() + " photos", Toast.LENGTH_SHORT).show();
+                if (userSelected) Toast.makeText(this, "Google Fotoğraflar slayt gösterisi güncellendi · " + result.size() + " fotoğraf", Toast.LENGTH_SHORT).show();
                 scheduleGooglePhotosRefresh();
             });
         });
@@ -3782,7 +3782,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             JSONArray urls = new JSONArray(preferences.getString(GOOGLE_PHOTOS_CACHE_IMAGES, "[]"));
             for (int i = 0; i < urls.length(); i++) {
                 String url = urls.optString(i, "");
-                if (!url.isEmpty()) photos.add(new BackgroundPhoto(Uri.parse(url), "Google Photos " + (i + 1)));
+                if (!url.isEmpty()) photos.add(new BackgroundPhoto(Uri.parse(url), "Google Fotoğraflar " + (i + 1)));
             }
         } catch (Exception ignored) { }
         return photos;
@@ -3797,7 +3797,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 JSONObject value = values.optJSONObject(i);
                 if (value == null) continue;
                 String uri = value.optString("uri", "");
-                if (!uri.isEmpty()) photos.add(new BackgroundPhoto(Uri.parse(uri), value.optString("name", "Photo")));
+                if (!uri.isEmpty()) photos.add(new BackgroundPhoto(Uri.parse(uri), value.optString("name", "Fotoğraf")));
             }
         } catch (Exception ignored) { }
         return photos;
@@ -4042,7 +4042,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         if (channel == null) return false;
         boolean added = FavoriteChannels.toggle(favoriteChannelKeys, channel);
         FavoriteChannels.save(preferences, favoriteChannelKeys);
-        Toast.makeText(this, (added ? "Added to" : "Removed from") + " favourites: " + channel.name, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, (added ? "Eklendi:" : "Kaldırıldı:") + " favoriler: " + channel.name, Toast.LENGTH_SHORT).show();
         renderChannels();
         return true;
     }
@@ -4051,8 +4051,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         if (channelsRefreshing) return;
         channelsRefreshing = true;
         status.setVisibility(View.VISIBLE);
-        status.setText("Refreshing channels…");
-        if (settingsScreen != null) settingsScreen.onRefreshResult("Refreshing channels…");
+        status.setText("Kanallar yenileniyor…");
+        if (settingsScreen != null) settingsScreen.onRefreshResult("Kanallar yenileniyor…");
         iptv.refreshChannels((loaded, message) -> lifecycleWork.post(() -> {
             channelsRefreshing = false;
             channels.clear(); channels.addAll(loaded);
@@ -4070,7 +4070,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
     private void refreshGuide(boolean userRequested) {
         if (guideRefreshing) return;
         guideRefreshing = true;
-        String refreshing = userRequested ? "Refreshing programme guide…" : "Updating today's programme guide…";
+        String refreshing = userRequested ? "Program rehberi yenileniyor…" : "Bugünkü program rehberi güncelleniyor…";
         status.setVisibility(View.VISIBLE);
         status.setText(refreshing);
         if (settingsScreen != null) settingsScreen.onRefreshResult(refreshing);
@@ -4143,7 +4143,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
     private final class SettingsScreen {
         private static final int LIVE = 0, CHANNELS = 1, APPS = 2, APPEARANCE = 3, CLOCK = 4, DRM = 5, HOME = 6, BACKUP = 7, YOUTUBE = 8, CALENDAR = 9, SCHEDULES = 10, GAMES = 11, WEATHER = 12, NAVIGATION = 13;
-        private final String[] sections = {"Live TV", "Channels", "Apps", "Appearance", "Clock", "Playback & DRM", "Home button", "Backup & restore", "YouTube", "Calendar", "Schedules", "Games", "Weather", "Navigation"};
+        private final String[] sections = {"Canlı TV", "Kanallar", "Uygulamalar", "Görünüm", "Saat", "Oynatma ve DRM", "Ana Sayfa tuşu", "Yedekle ve geri yükle", "YouTube", "Takvim", "Zamanlamalar", "Oyunlar", "Hava Durumu", "Gezinme"};
         private final int[] NAV_ORDER = {
             // Group 0: Content (5 items)
             LIVE, CHANNELS, YOUTUBE, CALENDAR, GAMES,
@@ -4152,16 +4152,16 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             // Group 2: System & Advanced (4 items)
             SCHEDULES, HOME, DRM, BACKUP
         };
-        private final String[] GROUP_LABELS = {"Content", "Home & Display", "System"};
+        private final String[] GROUP_LABELS = {"İçerik", "Ana Sayfa ve Ekran", "Sistem"};
         private final String[] descriptions = {
-                "Playlist and programme guide", "Choose which channels appear in Live TV",
-                "Choose and order your home shortcuts", "Photo backdrop and wallpaper",
-                "Time and date on Home", "Default Widevine license settings",
-                "Open Sva when the TV Home button opens its built-in launcher",
-                "Save or restore launcher settings and channels", "Save videos and playlists in Saved",
-                "Show events from iCalendar feeds", "Choose when content updates automatically",
-                "Import and manage your local NES library", "Current conditions and a three-day forecast",
-                "Choose which categories appear and their order"
+                "Oynatma listesi ve program rehberi", "Canlı TV’de görünecek kanalları seçin",
+                "Ana sayfa kısayollarınızı seçin ve sıralayın", "Fotoğraf arka planı ve duvar kâğıdı",
+                "Ana Sayfa’daki saat ve tarih", "Varsayılan Widevine lisans ayarları",
+                "TV’nin Ana Sayfa tuşu kendi launcher’ını açtığında Sva’yı aç",
+                "Launcher ayarlarını ve kanalları kaydedin veya geri yükleyin", "Videoları ve oynatma listelerini Kaydedilenler’e ekleyin",
+                "iCalendar kaynaklarındaki etkinlikleri göster", "İçeriğin ne zaman otomatik güncelleneceğini seçin",
+                "Yerel NES kütüphanenizi içe aktarın ve yönetin", "Güncel hava durumu ve üç günlük tahmin",
+                "Hangi kategorilerin görüneceğini ve sırasını seçin"
         };
         private final boolean compactSettings = getResources().getDisplayMetrics().widthPixels
                 / getResources().getDisplayMetrics().density < 1100;
@@ -4213,7 +4213,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             LinearLayout.LayoutParams eyeParams = new LinearLayout.LayoutParams(-2, -2);
             eyeParams.bottomMargin = dp(2);
             headingCopy.addView(eyebrow, eyeParams);
-            TextView title = label("Settings", 28, SettingsUi.text(MainActivity.this), true);
+            TextView title = label("Ayarlar", 28, SettingsUi.text(MainActivity.this), true);
             headingCopy.addView(title);
             // Thin separator below header
             View accentLine = new View(MainActivity.this);
@@ -4586,10 +4586,10 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             if (!hasUnsavedEdits()) { dialog.dismiss(); return; }
             AlertDialog prompt = new AlertDialog.Builder(new android.view.ContextThemeWrapper(MainActivity.this,
                     LiquidTheme.alertDialogTheme(MainActivity.this)))
-                    .setTitle("Discard unsaved edits?")
-                    .setMessage("Playlist, DRM, or calendar changes have not been saved.")
-                    .setPositiveButton("Discard", (ignored, which) -> dialog.dismiss())
-                    .setNegativeButton("Keep editing", null).create();
+                    .setTitle("Kaydedilmemiş değişiklikler atılsın mı?")
+                    .setMessage("Liste, DRM veya takvim değişiklikleri kaydedilmedi.")
+                    .setPositiveButton("At", (ignored, which) -> dialog.dismiss())
+                    .setNegativeButton("Düzenlemeye devam et", null).create();
             Motion.dialog(prompt); prompt.show();
             styleDialog(prompt);
         }
@@ -4669,12 +4669,12 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderGameSettings(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Library");
-            addFormHint(form, "Sva supports user-provided .nes files only. Games are copied into private app storage; original files are never changed.");
-            addFormButton(form, "Open game library and import", v -> openGameLibrary());
-            addFormSectionHeader(form, "Controllers");
-            addFormButton(form, "Configure game controllers", v -> startActivity(new Intent(MainActivity.this, ControllerSettingsActivity.class)));
-            addFormHint(form, "Nestopia UE is embedded in Sva. On a TV remote, use the arrow buttons to move, OK for A, and hold OK for Start. Gamepads are assigned to players one and two automatically. During play, Back opens Resume, Restart, and Exit.");
+            addFormSectionHeader(form, "Kütüphane");
+            addFormHint(form, "Sva yalnızca kullanıcının sağladığı .nes dosyalarını destekler. Oyunlar uygulamanın özel depolama alanına kopyalanır; özgün dosyalar asla değiştirilmez.");
+            addFormButton(form, "Oyun kütüphanesini aç ve içe aktar", v -> openGameLibrary());
+            addFormSectionHeader(form, "Kontrolcüler");
+            addFormButton(form, "Oyun kontrolcülerini yapılandır", v -> startActivity(new Intent(MainActivity.this, ControllerSettingsActivity.class)));
+            addFormHint(form, "Nestopia UE, Sva’nın içine gömülüdür. TV kumandasında ok tuşlarıyla hareket edin, A için OK tuşuna, Başlat için OK tuşuna basılı tutun. Oyun kolları otomatik olarak birinci ve ikinci oyuncuya atanır. Oyun sırasında Geri tuşu Devam Et, Yeniden Başlat ve Çık menüsünü açar.");
             addFormHint(form, "Nestopia UE · GPL-2.0-or-later · Sva combined application GPLv3. Source: github.com/libretro/nestopia");
         }
 
@@ -4684,32 +4684,32 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             orderRows.setOrientation(LinearLayout.VERTICAL);
             orderRows.setClipChildren(false);
             orderRows.setClipToPadding(false);
-            addFormSectionHeader(form, "Visible categories");
-            addFormHint(form, "Choose which categories appear in the navigation bar. Your games and calendar data stay saved.");
+            addFormSectionHeader(form, "Görünür kategoriler");
+            addFormHint(form, "Gezinme çubuğunda hangi kategorilerin görüneceğini seçin. Oyunlarınız ve takvim verileriniz kayıtlı kalır.");
             boolean hidden = preferences.getBoolean(PREF_HIDE_LIVE_TV, false);
-            addToggle(form, "Show Live TV in navigation", !hidden, enabled -> {
+            addToggle(form, "Gezinmede Canlı TV’yi göster", !hidden, enabled -> {
                 preferences.edit().putBoolean(PREF_HIDE_LIVE_TV, !enabled).apply();
                 rebuildNavigationButtons();
                 renderNavigationOrder(orderRows, -1);
                 if (!enabled && activeTab == TAB_TV) selectTab(TAB_HOME, true);
             });
-            addToggle(form, "Show Games in navigation", !preferences.getBoolean(PREF_HIDE_GAMES, false), enabled -> {
+            addToggle(form, "Gezinmede Oyunlar’ı göster", !preferences.getBoolean(PREF_HIDE_GAMES, false), enabled -> {
                 preferences.edit().putBoolean(PREF_HIDE_GAMES, !enabled).apply();
                 rebuildNavigationButtons();
                 renderNavigationOrder(orderRows, -1);
                 if (!enabled && activeTab == TAB_GAMES) selectTab(TAB_HOME, true);
             });
-            addToggle(form, "Show Events in navigation", !preferences.getBoolean(PREF_HIDE_EVENTS, false), enabled -> {
+            addToggle(form, "Gezinmede Etkinlikler’i göster", !preferences.getBoolean(PREF_HIDE_EVENTS, false), enabled -> {
                 preferences.edit().putBoolean(PREF_HIDE_EVENTS, !enabled).apply();
                 rebuildNavigationButtons();
                 renderNavigationOrder(orderRows, -1);
                 if (!enabled && activeTab == TAB_EVENTS) selectTab(TAB_HOME, true);
             });
-            addFormSectionHeader(form, "Item order");
-            addFormHint(form, "Home stays first. Select a category to change its position. Hidden categories keep their place.");
+            addFormSectionHeader(form, "Öğe sırası");
+            addFormHint(form, "Ana Sayfa hep ilk sırada kalır. Konumunu değiştirmek için bir kategori seçin. Gizli kategoriler yerini korur.");
             form.addView(orderRows);
             renderNavigationOrder(orderRows, -1);
-            addFormButton(form, "Reset item order", v -> {
+            addFormButton(form, "Öğe sırasını sıfırla", v -> {
                 preferences.edit().remove(NavigationPreferences.ORDER).remove(PREF_LIVE_TV_POSITION).apply();
                 rebuildNavigationButtons();
                 renderNavigationOrder(orderRows, -1);
@@ -4719,11 +4719,11 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         private void renderNavigationOrder(LinearLayout container, int focusTab) {
             container.removeAllViews();
             List<Integer> ordered = navigationOrder();
-            String[] positions = {"First after Home", "Second after Home", "Third after Home", "Last"};
+            String[] positions = {"Ana Sayfa’dan sonra birinci", "Ana Sayfa’dan sonra ikinci", "Ana Sayfa’dan sonra üçüncü", "Son"};
             for (int position = 0; position < ordered.size(); position++) {
                 final int tab = ordered.get(position);
                 View row = SettingsUi.choice(MainActivity.this, TAB_TITLES[tab]
-                        + (isNavigationHidden(tab) ? " · Hidden" : ""), positions, position, destination -> {
+                        + (isNavigationHidden(tab) ? " · Gizli" : ""), positions, position, destination -> {
                     List<Integer> updated = navigationOrder();
                     updated.remove(Integer.valueOf(tab)); updated.add(destination, tab);
                     preferences.edit().putString(NavigationPreferences.ORDER, NavigationPreferences.encode(updated)).apply();
@@ -4739,29 +4739,29 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             LinearLayout form = scrollForm(page);
             WeatherRepository.Location saved = savedWeatherLocation();
             // — Location ——————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Location");
-            addFormHint(form, saved == null ? "Choose a city or use this TV's location to show weather on Home."
-                    : "Weather location · " + saved.label);
-            EditText search = addInput(form, "Search city or postal code", "Pune, India", "", false);
+            addFormSectionHeader(form, "Konum");
+            addFormHint(form, saved == null ? "Ana Sayfa’da hava durumunu göstermek için bir şehir seçin veya bu TV’nin konumunu kullanın."
+                    : "Hava durumu konumu · " + saved.label);
+            EditText search = addInput(form, "Şehir veya posta kodu ara", "İstanbul, Türkiye", "", false);
             weatherSearchResults = new LinearLayout(MainActivity.this);
             weatherSearchResults.setOrientation(LinearLayout.VERTICAL);
             weatherSearchResults.setClipChildren(false);
             weatherSearchResults.setClipToPadding(false);
-            addFormButton(form, "Search", v -> {
+            addFormButton(form, "Ara", v -> {
                 String query = search.getText().toString().trim();
-                if (query.length() < 2) { setWeatherFeedback("Enter at least two characters."); return; }
-                setWeatherFeedback("Searching locations…"); weatherSearchResults.removeAllViews();
+                if (query.length() < 2) { setWeatherFeedback("En az iki karakter girin."); return; }
+                setWeatherFeedback("Konumlar aranıyor…"); weatherSearchResults.removeAllViews();
                 lifecycleWork.execute(ioWorker, () -> {
                     List<WeatherRepository.Location> results = null; String error = null;
                     try { results = WeatherRepository.search(query, Locale.getDefault()); }
-                    catch (Exception failure) { error = failure.getMessage() == null ? "Location search failed." : failure.getMessage(); }
+                    catch (Exception failure) { error = failure.getMessage() == null ? "Konum araması başarısız." : failure.getMessage(); }
                     List<WeatherRepository.Location> found = results; String failure = error;
                     lifecycleWork.post(() -> {
                         if (settingsScreen != this || section != WEATHER) return;
                         weatherSearchResults.removeAllViews();
-                        if (failure != null) { setWeatherFeedback("Search failed · " + failure); return; }
-                        if (found == null || found.isEmpty()) { setWeatherFeedback("No matching places found."); return; }
-                        setWeatherFeedback("Choose a location.");
+                        if (failure != null) { setWeatherFeedback("Arama başarısız · " + failure); return; }
+                        if (found == null || found.isEmpty()) { setWeatherFeedback("Eşleşen yer bulunamadı."); return; }
+                        setWeatherFeedback("Bir konum seçin.");
                         for (WeatherRepository.Location location : found) {
                             Button option = addFormButton(weatherSearchResults, location.label, null);
                             option.setOnClickListener(ignored -> saveWeatherLocation("city", location));
@@ -4770,8 +4770,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 });
             });
             form.addView(weatherSearchResults);
-            addFormButton(form, "Use device location", v -> requestDeviceWeatherLocation());
-            if (saved != null) addFormButton(form, "Remove weather", v -> {
+            addFormButton(form, "Cihaz konumunu kullan", v -> requestDeviceWeatherLocation());
+            if (saved != null) addFormButton(form, "Hava durumunu kaldır", v -> {
                 preferences.edit().remove("weatherLocationMode").remove("weatherLocationLabel")
                         .remove("weatherLatitude").remove("weatherLongitude").remove("weatherCache")
                         .remove("weatherUpdatedAt").remove("weatherAttemptedAt").apply();
@@ -4779,24 +4779,24 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 renderWeather(); renderSection();
             });
             // — Units ——————————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Units");
-            addChoice(form, "Temperature", new String[]{"Celsius", "Fahrenheit"},
+            addFormSectionHeader(form, "Birimler");
+            addChoice(form, "Sıcaklık", new String[]{"Santigrat", "Fahrenhayt"},
                     preferences.getBoolean("weatherFahrenheit", false) ? 1 : 0, index -> {
                         preferences.edit().putBoolean("weatherFahrenheit", index == 1).apply(); renderWeather();
                     });
-            addChoice(form, "Wind speed", new String[]{"km/h", "mph"},
+            addChoice(form, "Rüzgâr hızı", new String[]{"km/h", "mph"},
                     preferences.getBoolean("weatherMph", false) ? 1 : 0, index -> {
                         preferences.edit().putBoolean("weatherMph", index == 1).apply(); renderWeather();
                     });
-            addFormButton(form, "Refresh now", v -> {
-                if (!hasWeatherLocation()) { setWeatherFeedback("Choose a location first."); return; }
+            addFormButton(form, "Şimdi yenile", v -> {
+                if (!hasWeatherLocation()) { setWeatherFeedback("Önce bir konum seçin."); return; }
                 if ("device".equals(preferences.getString("weatherLocationMode", ""))) requestDeviceWeatherLocation();
                 else maybeRefreshWeather(true);
             });
             weatherFeedback = label("", 14, SettingsUi.muted(MainActivity.this), false);
             weatherFeedback.setPadding(dp(2), dp(6), dp(2), dp(6));
             form.addView(weatherFeedback);
-            addFormHint(form, "Weather by Open-Meteo · Locations by GeoNames · Device location requested only on setup or manual refresh.");
+            addFormHint(form, "Hava durumu: Open-Meteo · Konumlar: GeoNames · Cihaz konumu yalnızca kurulumda veya elle yenilemede istenir.");
         }
 
         private void setWeatherFeedback(String message) {
@@ -4805,67 +4805,67 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderHomeOverride(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Override status");
+            addFormSectionHeader(form, "Geçersiz kılma durumu");
             boolean enabled = isLauncherOverrideEnabled();
             addFormHint(form, enabled
-                    ? "✓ Sva launcher override is enabled on this TV."
-                    : "✕ Sva launcher override is currently disabled.");
-            addFormHint(form, "Some TVs keep their built-in launcher as Home even when another launcher is selected. Enable Sva Launcher in Android Accessibility settings to reopen Sva whenever the TV opens its built-in launcher.");
-            addFormSectionHeader(form, "Settings shortcuts");
+                    ? "✓ Bu TV’de Sva launcher geçersiz kılma etkin."
+                    : "✕ Sva launcher geçersiz kılma şu anda kapalı.");
+            addFormHint(form, "Bazı TV’ler başka bir launcher seçilse bile kendi launcher’ını Ana Sayfa olarak tutar. TV kendi launcher’ını her açtığında Sva’yı yeniden açmak için Android Erişilebilirlik ayarlarında Sva Launcher’ı etkinleştirin.");
+            addFormSectionHeader(form, "Ayar kısayolları");
             TextView accessibilityFeedback = SettingsUi.text(MainActivity.this, "", 14, true);
             accessibilityFeedback.setTag("accessibility-shortcut-feedback");
             accessibilityFeedback.setVisibility(View.GONE);
-            addFormButton(form, "Open Accessibility settings", v -> AccessibilitySettingsShortcut.open(
+            addFormButton(form, "Erişilebilirlik ayarlarını aç", v -> AccessibilitySettingsShortcut.open(
                     action -> startActivity(new Intent(action)), accessibilityFeedback));
             SettingsUi.add(form, accessibilityFeedback);
-            addFormButton(form, "Try setting Sva as the Home app", v -> {
+            addFormButton(form, "Sva’yı Ana Sayfa uygulaması olarak ayarlamayı dene", v -> {
                 try {
                     startActivity(new Intent("android.settings.HOME_SETTINGS"));
                 } catch (Exception e) {
                     try { startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)); }
-                    catch (Exception ignored) { Toast.makeText(MainActivity.this, "Could not open Home settings.", Toast.LENGTH_LONG).show(); }
+                    catch (Exception ignored) { Toast.makeText(MainActivity.this, "Ana Sayfa ayarları açılamadı.", Toast.LENGTH_LONG).show(); }
                 }
             });
         }
 
         private void renderBackup(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Create backup");
-            addFormHint(form, "Create a JSON backup of launcher settings, app and channel choices, and IPTV details.");
-            addFormButton(form, "Create backup file", v -> openBackupExportPicker());
-            addFormSectionHeader(form, "Restore from backup");
-            addFormHint(form, "Restoring replaces the current launcher settings and channel preferences. Keep backup files private.");
-            addFormButton(form, "Restore from backup", v -> openBackupImportPicker());
+            addFormSectionHeader(form, "Yedek oluştur");
+            addFormHint(form, "Launcher ayarlarının, uygulama ve kanal seçimlerinin ve IPTV bilgilerinin JSON yedeğini oluşturun.");
+            addFormButton(form, "Yedek dosyası oluştur", v -> openBackupExportPicker());
+            addFormSectionHeader(form, "Yedekten geri yükle");
+            addFormHint(form, "Geri yükleme, mevcut launcher ayarlarının ve kanal tercihlerinin yerini alır. Yedek dosyalarını gizli tutun.");
+            addFormButton(form, "Yedekten geri yükle", v -> openBackupImportPicker());
         }
 
         private void renderSchedules(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Refresh intervals");
-            addFormHint(form, "Schedules run while Sva is open. Overdue content is checked when Home resumes; manual refresh buttons continue to work when automatic refresh is disabled.");
-            addScheduleButton(form, "Photo slideshow", SchedulePreferences.SLIDESHOW,
+            addFormSectionHeader(form, "Yenileme aralıkları");
+            addFormHint(form, "Zamanlamalar Sva açıkken çalışır. Zamanı geçmiş içerik, Ana Sayfa’ya dönüldüğünde kontrol edilir; otomatik yenileme kapalıyken elle yenileme düğmeleri çalışmaya devam eder.");
+            addScheduleButton(form, "Fotoğraf slayt gösterisi", SchedulePreferences.SLIDESHOW,
                     SchedulePreferences.SLIDESHOW_VALUES, SchedulePreferences.DEFAULT_SLIDESHOW, true, false,
                     () -> {
                         if (slideshowTick != null) handler.removeCallbacks(slideshowTick);
                         scheduleNextBackgroundPhoto();
                     });
-            addScheduleButton(form, "IPTV playlist", SchedulePreferences.PLAYLIST,
+            addScheduleButton(form, "IPTV oynatma listesi", SchedulePreferences.PLAYLIST,
                     SchedulePreferences.PLAYLIST_VALUES, SchedulePreferences.DEFAULT_PLAYLIST, false, false,
                     () -> { maybeRefreshLiveData(); scheduleLiveRefreshCheck(); });
-            addScheduleButton(form, "Programme guide", SchedulePreferences.GUIDE,
+            addScheduleButton(form, "Program rehberi", SchedulePreferences.GUIDE,
                     SchedulePreferences.GUIDE_VALUES, SchedulePreferences.DEFAULT_GUIDE, false, false,
                     () -> { maybeRefreshLiveData(); scheduleLiveRefreshCheck(); });
-            addScheduleButton(form, "Public calendar", SchedulePreferences.CALENDAR,
+            addScheduleButton(form, "Herkese açık takvim", SchedulePreferences.CALENDAR,
                     SchedulePreferences.CALENDAR_VALUES, SchedulePreferences.DEFAULT_CALENDAR, false, false,
                     () -> { maybeRefreshPublicCalendar(false); scheduleCalendarRefresh(); });
-            addScheduleButton(form, "Google Photos album", SchedulePreferences.GOOGLE_PHOTOS,
+            addScheduleButton(form, "Google Fotoğraflar albümü", SchedulePreferences.GOOGLE_PHOTOS,
                     SchedulePreferences.GOOGLE_PHOTOS_VALUES, SchedulePreferences.DEFAULT_GOOGLE_PHOTOS, false, true,
                     () -> { maybeRefreshGooglePhotos(false); scheduleGooglePhotosRefresh(); });
-            addScheduleButton(form, "Weather", SchedulePreferences.WEATHER,
+            addScheduleButton(form, "Hava Durumu", SchedulePreferences.WEATHER,
                     SchedulePreferences.WEATHER_VALUES, SchedulePreferences.DEFAULT_WEATHER, false, true,
                     () -> { weatherRefreshedThisLaunch = false; maybeRefreshWeather(false); scheduleWeatherRefresh(); });
-            addFormSectionHeader(form, "Defaults");
-            addFormHint(form, "Paused keeps the current photo visible. Every launch refreshes Google Photos or weather once when Sva starts.");
-            addFormButton(form, "Restore schedule defaults", v -> {
+            addFormSectionHeader(form, "Varsayılanlar");
+            addFormHint(form, "Duraklatıldığında mevcut fotoğraf görünür kalır. Her açılışta, Sva başlarken Google Fotoğraflar veya hava durumu bir kez yenilenir.");
+            addFormButton(form, "Zamanlama varsayılanlarını geri yükle", v -> {
                 preferences.edit()
                         .putLong(SchedulePreferences.SLIDESHOW, SchedulePreferences.DEFAULT_SLIDESHOW)
                         .putLong(SchedulePreferences.PLAYLIST, SchedulePreferences.DEFAULT_PLAYLIST)
@@ -4904,24 +4904,24 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderYouTubeSettings(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Add shortcut");
-            addFormHint(form, "Paste a public YouTube video or playlist link to add a card to Saved. Add an optional title; the full artwork thumbnail stays visible on the card.");
-            youtubeUrlField = addInput(form, "Video or playlist link", "https://www.youtube.com/watch?v=…", draftYoutubeUrl, false);
-            youtubeTitleField = addInput(form, "Card title · optional", "Use the YouTube title", draftYoutubeTitle, false);
-            youtubeArtField = addInput(form, "Artwork video link · optional", "Use for playlist artwork", draftYoutubeArt, false);
-            addFormButton(form, "Add to Saved", view -> {
+            addFormSectionHeader(form, "Kısayol ekle");
+            addFormHint(form, "Kaydedilenler’e kart eklemek için herkese açık bir YouTube video veya oynatma listesi bağlantısı yapıştırın. İsteğe bağlı bir başlık ekleyebilirsiniz; kapak küçük resmi kartta tam görünür.");
+            youtubeUrlField = addInput(form, "Video veya oynatma listesi bağlantısı", "https://www.youtube.com/watch?v=…", draftYoutubeUrl, false);
+            youtubeTitleField = addInput(form, "Kart başlığı · isteğe bağlı", "YouTube başlığını kullan", draftYoutubeTitle, false);
+            youtubeArtField = addInput(form, "Kapak görseli video bağlantısı · isteğe bağlı", "Oynatma listesi kapağı için kullan", draftYoutubeArt, false);
+            addFormButton(form, "Kaydedilenler’e ekle", view -> {
                 String value = youtubeUrlField == null ? draftYoutubeUrl : youtubeUrlField.getText().toString();
                 String customTitle = youtubeTitleField == null ? draftYoutubeTitle : youtubeTitleField.getText().toString().trim();
                 String artworkVideo = youtubeArtField == null ? draftYoutubeArt : youtubeArtField.getText().toString().trim();
                 YouTubeCard parsed = YouTubeCard.parse(value);
                 if (parsed == null) {
-                    if (youtubeFeedback != null) youtubeFeedback.setText("Enter a valid YouTube video or playlist link.");
+                    if (youtubeFeedback != null) youtubeFeedback.setText("Geçerli bir YouTube video veya oynatma listesi bağlantısı girin.");
                     return;
                 }
                 List<YouTubeCard> cards = savedYouTubeCards();
                 for (YouTubeCard card : cards) {
                     if (card.url.equals(parsed.url)) {
-                        if (youtubeFeedback != null) youtubeFeedback.setText("That link is already in Saved.");
+                        if (youtubeFeedback != null) youtubeFeedback.setText("Bu bağlantı zaten Kaydedilenler’de.");
                         return;
                     }
                 }
@@ -4930,7 +4930,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     parsed.customTitle = true;
                 }
                 if (!artworkVideo.isEmpty() && !parsed.useArtworkFromVideo(artworkVideo)) {
-                    if (youtubeFeedback != null) youtubeFeedback.setText("Artwork must be a YouTube video link.");
+                    if (youtubeFeedback != null) youtubeFeedback.setText("Kapak görseli bir YouTube video bağlantısı olmalıdır.");
                     return;
                 }
                 cards.add(parsed);
@@ -4942,14 +4942,14 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 if (youtubeUrlField != null) youtubeUrlField.setText("");
                 if (youtubeTitleField != null) youtubeTitleField.setText("");
                 if (youtubeArtField != null) youtubeArtField.setText("");
-                if (youtubeFeedback != null) youtubeFeedback.setText("Added to Saved.");
+                if (youtubeFeedback != null) youtubeFeedback.setText("Kaydedilenler’e eklendi.");
                 renderYouTubeSavedList();
                 if (youtubeUrlField != null) youtubeUrlField.requestFocus();
             });
             youtubeFeedback = label("", 14, SettingsUi.muted(MainActivity.this), false);
             youtubeFeedback.setPadding(0, dp(4), 0, dp(8));
             form.addView(youtubeFeedback);
-            TextView savedTitle = label("Saved shortcuts", 18, SettingsUi.text(MainActivity.this), true);
+            TextView savedTitle = label("Kayıtlı kısayollar", 18, SettingsUi.text(MainActivity.this), true);
             savedTitle.setLetterSpacing(.12f);
             LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(-1, dp(36));
             titleParams.topMargin = dp(10);
@@ -4967,7 +4967,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             youtubeSavedList.removeAllViews();
             List<YouTubeCard> cards = savedYouTubeCards();
             if (cards.isEmpty()) {
-                youtubeSavedList.addView(label("No YouTube cards saved yet.", 14,
+                youtubeSavedList.addView(label("Henüz kayıtlı YouTube kartı yok.", 14,
                         SettingsUi.muted(MainActivity.this), false));
                 return;
             }
@@ -4984,8 +4984,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 title.setSingleLine(true);
                 title.setEllipsize(android.text.TextUtils.TruncateAt.END);
                 copy.addView(title);
-                TextView detail = label((YouTubeCard.VIDEO.equals(card.type) ? "VIDEO" : "PLAYLIST")
-                        + ((card.thumbnailUrl == null || card.thumbnailUrl.isEmpty()) ? "  ·  Add art" : "")
+                TextView detail = label((YouTubeCard.VIDEO.equals(card.type) ? "VİDEO" : "OYNATMA LİSTESİ")
+                        + ((card.thumbnailUrl == null || card.thumbnailUrl.isEmpty()) ? "  ·  Kapak ekle" : "")
                         + "  ·  " + card.url, 11, SettingsUi.muted(MainActivity.this), false);
                 detail.setSingleLine(true);
                 detail.setEllipsize(android.text.TextUtils.TruncateAt.MIDDLE);
@@ -4999,12 +4999,12 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 LinearLayout.LayoutParams cardActionParams = new LinearLayout.LayoutParams(-1, -2);
                 cardActionParams.topMargin = dp(10);
                 row.addView(cardActions, cardActionParams);
-                Button remove = settingsButton("Remove");
-                remove.setContentDescription("Remove " + card.title + " from Saved");
-                Button editTitle = settingsButton("Title");
-                editTitle.setContentDescription("Edit title for " + card.title);
-                Button editArt = settingsButton("Art");
-                editArt.setContentDescription("Edit artwork for " + card.title);
+                Button remove = settingsButton("Kaldır");
+                remove.setContentDescription("Kaldır: " + card.title + " Kaydedilenler’den");
+                Button editTitle = settingsButton("Başlık");
+                editTitle.setContentDescription("Başlığı düzenle: " + card.title);
+                Button editArt = settingsButton("Kapak");
+                editArt.setContentDescription("Kapak görselini düzenle: " + card.title);
                 LinearLayout.LayoutParams editParams = new LinearLayout.LayoutParams(0, dp(46), 1);
                 editParams.setMargins(dp(2), dp(2), dp(3), dp(2));
                 cardActions.addView(editTitle, editParams);
@@ -5022,7 +5022,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     for (YouTubeCard saved : latest) if (!saved.url.equals(card.url)) retained.add(saved);
                     saveYouTubeCards(retained);
                     youtubeChanged = true;
-                    if (youtubeFeedback != null) youtubeFeedback.setText("Removed from Saved.");
+                    if (youtubeFeedback != null) youtubeFeedback.setText("Kaydedilenler’den kaldırıldı.");
                     renderYouTubeSavedList();
                 });
                 LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(-1, -2);
@@ -5034,7 +5034,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         private void editYouTubeArtwork(YouTubeCard selected) {
             EditText artworkInput = new EditText(MainActivity.this);
             artworkInput.setSingleLine(true);
-            artworkInput.setHint("YouTube video link");
+            artworkInput.setHint("YouTube video bağlantısı");
             artworkInput.setTextColor(SettingsUi.text(MainActivity.this));
             artworkInput.setHintTextColor(SettingsUi.muted(MainActivity.this));
             artworkInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
@@ -5043,18 +5043,18 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     LiquidTheme.border(MainActivity.this), 1, 12));
             AlertDialog artworkDialog = new AlertDialog.Builder(new android.view.ContextThemeWrapper(MainActivity.this,
                     LiquidTheme.alertDialogTheme(MainActivity.this)))
-                    .setTitle("Card artwork")
-                    .setMessage("Paste a YouTube video link to use its thumbnail. Leave empty to retry automatic artwork.")
+                    .setTitle("Kart kapak görseli")
+                    .setMessage("Küçük resmini kullanmak için bir YouTube video bağlantısı yapıştırın. Otomatik kapağı yeniden denemek için boş bırakın.")
                     .setView(artworkInput)
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Save", null)
+                    .setNegativeButton("İptal", null)
+                    .setPositiveButton("Kaydet", null)
                     .create();
             artworkDialog.setOnShowListener(ignored -> artworkDialog.getButton(AlertDialog.BUTTON_POSITIVE)
                     .setOnClickListener(view -> {
                         String videoLink = artworkInput.getText().toString().trim();
                         YouTubeCard image = videoLink.isEmpty() ? null : YouTubeCard.parse(videoLink);
                         if (!videoLink.isEmpty() && (image == null || !YouTubeCard.VIDEO.equals(image.type))) {
-                            artworkInput.setError("Enter a YouTube video link");
+                            artworkInput.setError("Bir YouTube video bağlantısı girin");
                             return;
                         }
                         List<YouTubeCard> cards = savedYouTubeCards();
@@ -5081,7 +5081,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         private void editYouTubeTitle(YouTubeCard selected) {
             EditText titleInput = new EditText(MainActivity.this);
             titleInput.setSingleLine(true);
-            titleInput.setHint("Use the YouTube title");
+            titleInput.setHint("YouTube başlığını kullan");
             titleInput.setText(selected.customTitle ? selected.title : "");
             titleInput.setTextColor(SettingsUi.text(MainActivity.this));
             titleInput.setHintTextColor(SettingsUi.muted(MainActivity.this));
@@ -5094,11 +5094,11 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     LiquidTheme.border(MainActivity.this), 1, 12));
             AlertDialog prompt = new AlertDialog.Builder(new android.view.ContextThemeWrapper(MainActivity.this,
                     LiquidTheme.alertDialogTheme(MainActivity.this)))
-                    .setTitle("Card title")
-                    .setMessage("Clear the title to use the title provided by YouTube when available.")
+                    .setTitle("Kart başlığı")
+                    .setMessage("Mümkünse YouTube’un sağladığı başlığı kullanmak için başlığı silin.")
                     .setView(titleInput)
-                    .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Save", (dialog, which) -> {
+                    .setNegativeButton("İptal", null)
+                    .setPositiveButton("Kaydet", (dialog, which) -> {
                         String custom = titleInput.getText().toString().trim();
                         List<YouTubeCard> latest = savedYouTubeCards();
                         for (YouTubeCard card : latest) {
@@ -5118,17 +5118,17 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderCalendarSettings(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Calendar feeds");
-            addFormHint(form, "Add iCalendar feed URLs, one per line. Google Calendar, published calendars, and local calendar servers are supported. Feeds must be readable without signing in. Events are combined in the Events tab.");
-            calendarUrlField = addInput(form, "Calendar feeds · one URL per line", "https://example.com/calendar.ics", draftCalendarUrl, true);
+            addFormSectionHeader(form, "Takvim kaynakları");
+            addFormHint(form, "Her satıra bir iCalendar kaynak adresi ekleyin. Google Takvim, yayımlanmış takvimler ve yerel takvim sunucuları desteklenir. Kaynaklar oturum açmadan okunabilir olmalıdır. Etkinlikler Etkinlikler sekmesinde birleştirilir.");
+            calendarUrlField = addInput(form, "Takvim kaynakları · her satıra bir adres", "https://example.com/calendar.ics", draftCalendarUrl, true);
             calendarSummary = label(calendarSummaryText(), 14, SettingsUi.muted(MainActivity.this), false);
             calendarSummary.setPadding(dp(14), dp(8), dp(14), dp(8));
             calendarSummary.setBackground(roundedShape(SettingsUi.surface(MainActivity.this), LiquidTheme.border(MainActivity.this), 1, 10));
             LinearLayout.LayoutParams csParams = new LinearLayout.LayoutParams(-1, -2);
             csParams.setMargins(0, dp(4), 0, dp(6));
             form.addView(calendarSummary, csParams);
-            addFormSectionHeader(form, "Actions");
-            addFormButton(form, "Save calendar and refresh", view -> {
+            addFormSectionHeader(form, "İşlemler");
+            addFormButton(form, "Takvimi kaydet ve yenile", view -> {
                 String entered = calendarUrlField == null ? draftCalendarUrl : calendarUrlField.getText().toString();
                 final List<String> urls;
                 try { urls = PublicCalendarRepository.normalizeUrls(entered); }
@@ -5147,7 +5147,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     renderedCalendarStamp = -1;
                     draftCalendarUrl = "";
                     if (calendarUrlField != null) calendarUrlField.setText("");
-                    if (calendarFeedback != null) calendarFeedback.setText("Calendars removed.");
+                    if (calendarFeedback != null) calendarFeedback.setText("Takvimler kaldırıldı.");
                     updateCalendarEventDisplay();
                     scheduleCalendarRefresh();
                     if (calendarSummary != null) calendarSummary.setText(calendarSummaryText());
@@ -5157,25 +5157,25 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 saveCalendarCache(cache, urls, false);
                 draftCalendarUrl = normalized;
                 if (calendarUrlField != null) calendarUrlField.setText(normalized);
-                if (calendarFeedback != null) calendarFeedback.setText("Refreshing calendar feeds…");
+                if (calendarFeedback != null) calendarFeedback.setText("Takvim kaynakları yenileniyor…");
                 if (calendarSummary != null) calendarSummary.setText(calendarSummaryText());
                 refreshPublicCalendar(normalized, true);
             });
-            addFormButton(form, "Refresh saved calendar now", view -> {
+            addFormButton(form, "Kayıtlı takvimi şimdi yenile", view -> {
                 String entered = calendarUrlField == null ? draftCalendarUrl : calendarUrlField.getText().toString();
                 if (!entered.equals(preferences.getString("publicCalendarUrl", ""))) {
-                    if (calendarFeedback != null) calendarFeedback.setText("Save the calendar feeds before refreshing.");
+                    if (calendarFeedback != null) calendarFeedback.setText("Yenilemeden önce takvim kaynaklarını kaydedin.");
                 } else if (entered.isEmpty()) {
-                    if (calendarFeedback != null) calendarFeedback.setText("Add a calendar feed first.");
+                    if (calendarFeedback != null) calendarFeedback.setText("Önce bir takvim kaynağı ekleyin.");
                 } else {
-                    if (calendarFeedback != null) calendarFeedback.setText("Refreshing calendar feeds…");
+                    if (calendarFeedback != null) calendarFeedback.setText("Takvim kaynakları yenileniyor…");
                     refreshPublicCalendar(entered, true);
                 }
             });
             calendarFeedback = label("", 14, SettingsUi.muted(MainActivity.this), false);
             calendarFeedback.setPadding(dp(2), dp(4), dp(2), dp(4));
             form.addView(calendarFeedback);
-            addFormHint(form, "The on-device schedule is checked when Sva opens. Change its automatic refresh cadence under Schedules. Events appear while active.");
+            addFormHint(form, "Cihazdaki zamanlama, Sva açıldığında kontrol edilir. Otomatik yenileme sıklığını Zamanlamalar’dan değiştirin. Etkinlikler etkinken görünür.");
         }
 
         private String calendarSummaryText() {
@@ -5183,13 +5183,13 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             JSONArray events;
             try { events = new JSONArray(preferences.getString("publicCalendarEvents", "[]")); }
             catch (Exception ignored) { events = new JSONArray(); }
-            String updated = updatedAt == 0L ? "Not refreshed yet"
-                    : "Updated " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+            String updated = updatedAt == 0L ? "Henüz yenilenmedi"
+                    : "Güncellendi: " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                     .format(new Date(updatedAt));
             int sources;
             try { sources = PublicCalendarRepository.normalizeUrls(preferences.getString("publicCalendarUrl", "")).size(); }
-            catch (IllegalArgumentException invalidSavedUrls) { return "Calendar feeds need correcting · " + events.length() + " cached events"; }
-            return "Calendar cache · " + sources + " sources · " + events.length() + " events · " + updated;
+            catch (IllegalArgumentException invalidSavedUrls) { return "Takvim kaynaklarının düzeltilmesi gerekiyor · " + events.length() + " önbellekteki etkinlik"; }
+            return "Takvim önbelleği · " + sources + " kaynak · " + events.length() + " etkinlik · " + updated;
         }
 
         void onCalendarRefreshResult(String message) {
@@ -5280,7 +5280,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             if (text.equals("↑") || text.equals("↓")) {
                 button.setPadding(dp(4), 0, dp(4), 0);
                 button.setGravity(Gravity.CENTER);
-                button.setContentDescription(text.equals("↑") ? "Move up" : "Move down");
+                button.setContentDescription(text.equals("↑") ? "Yukarı taşı" : "Aşağı taşı");
             }
             return button;
         }
@@ -5311,21 +5311,21 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             actions.setGravity(Gravity.CENTER_VERTICAL);
             rowParams.setMargins(dp(8), dp(10), dp(8), dp(4));
             page.addView(actions, rowParams);
-            Button saveButton = settingsButton("Save changes");
+            Button saveButton = settingsButton("Değişiklikleri kaydet");
             saveButton.setTextColor(LiquidTheme.accent(MainActivity.this));
             saveButton.setMinHeight(dp(50));
             saveButton.setOnClickListener(save);
             LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(0, -2, 1);
             saveParams.setMargins(dp(2), dp(3), dp(4), dp(3));
             actions.addView(saveButton, saveParams);
-            Button discardButton = settingsButton("Discard edits");
+            Button discardButton = settingsButton("Değişiklikleri at");
             discardButton.setOnClickListener(discard);
             discardButton.setMinHeight(dp(50));
             LinearLayout.LayoutParams discardParams = new LinearLayout.LayoutParams(0, -2, 1);
             discardParams.setMargins(dp(6), dp(3), dp(4), dp(3));
             actions.addView(discardButton, discardParams);
             if (refresh != null) {
-                Button refreshButton = settingsButton("Refresh channels");
+                Button refreshButton = settingsButton("Kanalları yenile");
                 refreshButton.setOnClickListener(refresh);
                 refreshButton.setMinHeight(dp(50));
                 LinearLayout.LayoutParams refreshParams = new LinearLayout.LayoutParams(0, -2, 1);
@@ -5354,12 +5354,12 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderLive(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Playlist & Guide URLs");
-            playlistField = addInput(form, "M3U playlists · one URL per line", "https://example.com/playlist.m3u", draftPlaylist, true);
-            guideField = addInput(form, "Programme guides · one URL per line", "https://www.epgschedule.com/data/index-lite.json", draftGuide, true);
-            addFormHint(form, "Channels from all playlists are combined. Guide schedules from all sources are merged. Duplicate source URLs are ignored.");
-            addFormHint(form, "XMLTV matches by tvg-id. JSON guides match channel IDs or a unique channel name. EPGSchedule times use India Standard Time.");
-            addFormSectionHeader(form, "Cache & Guide status");
+            addFormSectionHeader(form, "Liste ve rehber adresleri");
+            playlistField = addInput(form, "M3U listeleri · her satıra bir adres", "https://example.com/playlist.m3u", draftPlaylist, true);
+            guideField = addInput(form, "Program rehberleri · her satıra bir adres", "https://www.epgschedule.com/data/index-lite.json", draftGuide, true);
+            addFormHint(form, "Tüm listelerdeki kanallar birleştirilir. Tüm kaynaklardaki rehber akışları birleştirilir. Yinelenen kaynak adresleri yok sayılır.");
+            addFormHint(form, "XMLTV, tvg-id ile eşleşir. JSON rehberleri kanal kimlikleri veya benzersiz bir kanal adıyla eşleşir. EPGSchedule saatleri Hindistan Standart Saati’ni kullanır.");
+            addFormSectionHeader(form, "Önbellek ve rehber durumu");
             cacheSummary = label(cacheSummaryText(), 14, SettingsUi.muted(MainActivity.this), false);
             cacheSummary.setPadding(dp(14), dp(8), dp(14), dp(8));
             cacheSummary.setBackground(roundedShape(SettingsUi.surface(MainActivity.this), LiquidTheme.border(MainActivity.this), 1, 10));
@@ -5374,15 +5374,15 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             gsParams.setMargins(0, dp(4), 0, dp(6));
             form.addView(guideSummary, gsParams);
 
-            addFormButton(form, "Refresh programme guide now", v -> {
+            addFormButton(form, "Program rehberini şimdi yenile", v -> {
                 String enteredGuide = guideField == null ? draftGuide : guideField.getText().toString().trim();
                 if (enteredGuide.isEmpty() || !enteredGuide.equals(iptv.guideUrl())) {
-                    if (liveFeedback != null) liveFeedback.setText("Save the programme guide URL before refreshing it.");
+                    if (liveFeedback != null) liveFeedback.setText("Yenilemeden önce program rehberi adresini kaydedin.");
                     return;
                 }
                 refreshGuide(true);
             });
-            addFormHint(form, "Playlist and programme-guide refresh cadences are configured independently under Schedules. You can also refresh them manually here.");
+            addFormHint(form, "Liste ve program rehberi yenileme sıklıkları Zamanlamalar’da ayrı ayrı ayarlanır. Buradan elle de yenileyebilirsiniz.");
             addSaveActions(page, v -> {
                 captureDrafts();
                 String playlist = draftPlaylist.trim(), guide = draftGuide.trim();
@@ -5397,15 +5397,15 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 renderSection();
                 if (changed) maybeRefreshLiveData();
                 if (liveFeedback != null) liveFeedback.setText(changed
-                        ? "Settings saved. Automatic refresh uses the cadences under Schedules."
-                        : "No changes to save.");
+                        ? "Ayarlar kaydedildi. Otomatik yenileme, Zamanlamalar’daki sıklıkları kullanır."
+                        : "Kaydedilecek değişiklik yok.");
             }, v -> {
                 draftPlaylist = iptv.playlistUrl(); draftGuide = iptv.guideUrl(); renderSection();
             }, v -> {
                 String enteredPlaylist = playlistField == null
                         ? draftPlaylist : playlistField.getText().toString().trim();
                 if (enteredPlaylist.isEmpty() || !enteredPlaylist.equals(iptv.playlistUrl())) {
-                    if (liveFeedback != null) liveFeedback.setText("Save the playlist URL before refreshing channels.");
+                    if (liveFeedback != null) liveFeedback.setText("Kanalları yenilemeden önce liste adresini kaydedin.");
                     return;
                 }
                 refreshChannels();
@@ -5418,15 +5418,15 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         private void renderDrm(LinearLayout page) {
             LinearLayout form = scrollForm(page);
             addFormSectionHeader(form, "Widevine DRM");
-            licenseField = addInput(form, "Widevine license URL", "Optional default license endpoint", draftLicense, false);
-            headersField = addInput(form, "License request headers", "One per line · Name: Value", draftHeaders, true);
-            addFormHint(form, "Channel-specific KODIPROP settings in the playlist take priority over these defaults.");
+            licenseField = addInput(form, "Widevine lisans adresi", "İsteğe bağlı varsayılan lisans adresi", draftLicense, false);
+            headersField = addInput(form, "Lisans isteği başlıkları", "Her satıra bir tane · Ad: Değer", draftHeaders, true);
+            addFormHint(form, "Listedeki kanala özel KODIPROP ayarları bu varsayılanlardan önceliklidir.");
             addSaveActions(page, v -> {
                 captureDrafts();
                 iptv.saveDrmSettings(draftLicense, draftHeaders);
                 draftLicense = iptv.drmLicenseUrl(); draftHeaders = iptv.drmHeaderText();
                 renderSection();
-                Toast.makeText(MainActivity.this, "Playback settings saved", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Oynatma ayarları kaydedildi", Toast.LENGTH_SHORT).show();
             }, v -> {
                 draftLicense = iptv.drmLicenseUrl(); draftHeaders = iptv.drmHeaderText(); renderSection();
             }, null);
@@ -5434,12 +5434,12 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private void renderClock(LinearLayout page) {
             LinearLayout form = scrollForm(page);
-            addFormSectionHeader(form, "Clock display");
-            addFormHint(form, "Changes appear on the Home clock immediately.");
-            addToggle(form, "24-hour time", preferences.getBoolean("24h", false), enabled -> {
+            addFormSectionHeader(form, "Saat görünümü");
+            addFormHint(form, "Değişiklikler Ana Sayfa saatinde hemen görünür.");
+            addToggle(form, "24 saat biçimi", preferences.getBoolean("24h", false), enabled -> {
                 preferences.edit().putBoolean("24h", enabled).apply(); updateClock();
             });
-            addToggle(form, "Show date", preferences.getBoolean("showDate", true), enabled -> {
+            addToggle(form, "Tarihi göster", preferences.getBoolean("showDate", true), enabled -> {
                 preferences.edit().putBoolean("showDate", enabled).apply(); updateClock();
             });
         }
@@ -5447,31 +5447,31 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         private void renderAppearance(LinearLayout page) {
             LinearLayout form = scrollForm(page);
             // — Theme ——————————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Theme");
-            addFormHint(form, "Follow your TV’s theme, or choose a light or dark appearance.");
+            addFormSectionHeader(form, "Tema");
+            addFormHint(form, "TV’nizin temasını izleyin veya açık ya da koyu görünüm seçin.");
             String mode = preferences.getString(LiquidTheme.PREF_MODE, LiquidTheme.DEFAULT_MODE);
             String[] modes = {LiquidTheme.SYSTEM, LiquidTheme.LIGHT, LiquidTheme.DARK};
-            addChoice(form, "Appearance", new String[]{"System default", "Light", "Dark"},
+            addChoice(form, "Görünüm", new String[]{"Sistem varsayılanı", "Açık", "Koyu"},
                     LiquidTheme.LIGHT.equals(mode) ? 1 : LiquidTheme.DARK.equals(mode) ? 2 : 0,
                     index -> changeLiquidGlassMode(modes[index]));
 
             // — Now Playing ————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Now Playing");
-            addFormHint(form, "Appears on Home only while media is playing. Allow notification access to show playback from other apps.");
-            addFormButton(form, "Manage Now Playing access", v -> openMusicAccessSettings());
+            addFormSectionHeader(form, "Şimdi Çalıyor");
+            addFormHint(form, "Yalnızca medya oynatılırken Ana Sayfa’da görünür. Diğer uygulamalardaki oynatmayı göstermek için bildirim erişimine izin verin.");
+            addFormButton(form, "Şimdi Çalıyor erişimini yönet", v -> openMusicAccessSettings());
             // — Screensaver ————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Screensaver");
-            addFormButton(form, "Sva Memories · screensaver settings", v ->
+            addFormSectionHeader(form, "Ekran koruyucu");
+            addFormButton(form, "Sva Memories · ekran koruyucu ayarları", v ->
                     startActivity(new Intent(MainActivity.this, ScreensaverSettingsActivity.class)));
             // — Slideshow ——————————————————————————————————————————————————————
-            addFormSectionHeader(form, "Slideshow");
-            addFormHint(form, "A photo folder or Google Photos album plays as a slideshow. It takes priority over a single wallpaper.");
+            addFormSectionHeader(form, "Slayt gösterisi");
+            addFormHint(form, "Bir fotoğraf klasörü veya Google Fotoğraflar albümü slayt gösterisi olarak oynatılır. Tek duvar kâğıdından önceliklidir.");
             boolean hasFolder = !preferences.getString("wallpaperFolder", "").isEmpty();
             addFormHint(form, hasFolder
-                    ? "Photo folder · " + backgroundPhotos.size() + " images"
-                    : "No photo folder selected");
-            addFormButton(form, "Choose photo folder", v -> openWallpaperFolderPicker());
-            if (hasFolder) addFormButton(form, "Clear photo folder", v -> {
+                    ? "Fotoğraf klasörü · " + backgroundPhotos.size() + " görsel"
+                    : "Fotoğraf klasörü seçilmedi");
+            addFormButton(form, "Fotoğraf klasörü seç", v -> openWallpaperFolderPicker());
+            if (hasFolder) addFormButton(form, "Fotoğraf klasörünü temizle", v -> {
                 backgroundFolderGeneration++;
                 preferences.edit().remove("wallpaperFolder")
                         .remove(PHOTO_FOLDER_CACHE_URI)
@@ -5483,19 +5483,19 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             });
             String albumUrl = preferences.getString("wallpaperAlbum", "");
             addFormHint(form, albumUrl.isEmpty()
-                    ? "No Google Photos album selected"
-                    : "Google Photos album · " + backgroundPhotos.size() + " images");
-            EditText albumField = addInput(form, "Google Photos public album link", "Paste a link shared with anyone", albumUrl, false);
-            addFormButton(form, "Use Google Photos album", v -> {
+                    ? "Google Fotoğraflar albümü seçilmedi"
+                    : "Google Fotoğraflar albümü · " + backgroundPhotos.size() + " görsel");
+            EditText albumField = addInput(form, "Google Fotoğraflar herkese açık albüm bağlantısı", "Bağlantıya sahip herkesle paylaşılan bir bağlantı yapıştırın", albumUrl, false);
+            addFormButton(form, "Google Fotoğraflar albümünü kullan", v -> {
                 String link = albumField.getText().toString().trim();
                 if (link.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Paste a Google Photos shared album link first.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Önce paylaşılan bir Google Fotoğraflar albümü bağlantısı yapıştırın.", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(MainActivity.this, "Loading public album…", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Herkese açık albüm yükleniyor…", Toast.LENGTH_SHORT).show();
                 loadBackgroundAlbum(link, true);
             });
-            if (!albumUrl.isEmpty()) addFormButton(form, "Clear Google Photos album", v -> {
+            if (!albumUrl.isEmpty()) addFormButton(form, "Google Fotoğraflar albümünü temizle", v -> {
                 backgroundFolderGeneration++;
                 preferences.edit().remove("wallpaperAlbum")
                         .remove(GOOGLE_PHOTOS_CACHE_URL)
@@ -5509,12 +5509,12 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 renderSection();
             });
             // — Single wallpaper ———————————————————————————————————————————————
-            addFormSectionHeader(form, "Single wallpaper");
+            addFormSectionHeader(form, "Tek duvar kâğıdı");
             boolean hasWallpaper = preferences.contains("wallpaper");
-            addFormHint(form, hasWallpaper ? "Single wallpaper is set" : "No single wallpaper — using the default landscape");
-            addFormButton(form, "Choose single wallpaper", v ->
+            addFormHint(form, hasWallpaper ? "Tek duvar kâğıdı ayarlı" : "Tek duvar kâğıdı yok — varsayılan manzara kullanılıyor");
+            addFormButton(form, "Tek duvar kâğıdı seç", v ->
                     startActivityForResult(TvFilePickerActivity.intent(MainActivity.this, TvFilePickerActivity.MODE_IMAGE), PICK_WALLPAPER));
-            if (hasWallpaper) addFormButton(form, "Clear single wallpaper", v -> {
+            if (hasWallpaper) addFormButton(form, "Tek duvar kâğıdını temizle", v -> {
                 preferences.edit().remove("wallpaper").apply();
                 applyWallpaper();
                 renderSection();
@@ -5540,23 +5540,23 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
 
         private String cacheSummaryText() {
             long updatedAt = iptv.lastUpdatedAt();
-            String updated = updatedAt == 0 ? "Not refreshed yet"
-                    : "Updated " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+            String updated = updatedAt == 0 ? "Henüz yenilenmedi"
+                    : "Güncellendi: " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                     .format(new Date(updatedAt));
-            return "On-device channel cache · " + channels.size()
-                    + (channels.size() == 1 ? " channel" : " channels") + " · " + updated;
+            return "Cihazdaki kanal önbelleği · " + channels.size()
+                    + (channels.size() == 1 ? " kanal" : " kanal") + " · " + updated;
         }
 
         private String guideSummaryText() {
             long updatedAt = iptv.lastGuideUpdatedAt();
-            String updated = updatedAt == 0 ? "Not refreshed yet"
-                    : "Last refreshed " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
+            String updated = updatedAt == 0 ? "Henüz yenilenmedi"
+                    : "Son yenileme: " + DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                     .format(new Date(updatedAt));
-            return "Programme guide · daily refresh · " + updated;
+            return "Program rehberi · günlük yenileme · " + updated;
         }
 
         private void renderChannelSettings(LinearLayout page) {
-            EditText search = addInput(page, "Find a channel", "Search by channel name", "", false);
+            EditText search = addInput(page, "Kanal bul", "Kanal adına göre ara", "", false);
             search.setInputType(InputType.TYPE_CLASS_TEXT);
             TextView count = label("", 14, SettingsUi.muted(MainActivity.this), false);
             LinearLayout.LayoutParams countParams = new LinearLayout.LayoutParams(-1, -2);
@@ -5581,7 +5581,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
         }
 
         private void renderAppSettings(LinearLayout page) {
-            addFormHint(page, "Choose up to five apps for Home. Use arrows to change their order.");
+            addFormHint(page, "Ana Sayfa için en fazla beş uygulama seçin. Sırasını değiştirmek için ok tuşlarını kullanın.");
             appList = new RecyclerView(MainActivity.this);
             appList.setLayoutManager(new LinearLayoutManager(MainActivity.this));
             appList.setClipChildren(true);
@@ -5646,8 +5646,8 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
             }
 
             private void updateCountLabel() {
-                count.setText(visible.size() + " of " + channels.size() + " channels · "
-                        + shownChannelCount() + " shown · " + favoriteChannelCount() + " favourites\nPress OK to toggle visibility · Long-press to toggle favourite");
+                count.setText(visible.size() + " / " + channels.size() + " kanal · "
+                        + shownChannelCount() + " gösterilen · " + favoriteChannelCount() + " favori\nGörünürlüğü değiştirmek için OK tuşuna basın · Favoriyi değiştirmek için basılı tutun");
             }
 
             @Override public Holder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -5679,9 +5679,9 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                 IptvRepository.Channel channel = visible.get(position);
                 boolean isFav = favoriteChannelKeys.contains(channel.stableKey());
                 holder.name.setText((isFav ? "★  " : "") + channel.name);
-                holder.group.setText(channel.group.isEmpty() ? "Uncategorized" : channel.group);
+                holder.group.setText(channel.group.isEmpty() ? "Kategorisiz" : channel.group);
                 boolean shown = !HiddenChannels.isHidden(hiddenChannelKeys, channel);
-                holder.state.setText((isFav ? "★ " : "") + (shown ? "Shown" : "Hidden"));
+                holder.state.setText((isFav ? "★ " : "") + (shown ? "Gösteriliyor" : "Gizli"));
                 holder.state.setTextColor(shown ? SettingsUi.text(MainActivity.this)
                         : SettingsUi.muted(MainActivity.this));
                 holder.itemView.setOnClickListener(v -> {
@@ -5699,7 +5699,7 @@ private void updateCalendarDetails(List<PublicCalendarRepository.Event> events) 
                     int current = holder.getBindingAdapterPosition();
                     if (current != RecyclerView.NO_POSITION) notifyItemChanged(current);
                     updateCountLabel();
-                    Toast.makeText(MainActivity.this, (added ? "Added to" : "Removed from") + " favourites: " + channel.name, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, (added ? "Eklendi:" : "Kaldırıldı:") + " favoriler: " + channel.name, Toast.LENGTH_SHORT).show();
                     return true;
                 });
             }

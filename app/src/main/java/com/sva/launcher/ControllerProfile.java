@@ -7,7 +7,7 @@ import android.view.KeyEvent;
 import org.json.JSONObject;
 
 final class ControllerProfile {
-    static final String[] NAMES = {"Up", "Down", "Left", "Right", "NES B", "NES A", "Select", "Start", "Pause"};
+    static final String[] NAMES = {"Yukarı", "Aşağı", "Sol", "Sağ", "NES B", "NES A", "Seç", "Başlat", "Duraklat"};
     static final int[] BITS = {4, 5, 6, 7, 0, 8, 2, 3, -2};
     static final int[] DEFAULT_KEYS = {KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN,
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_BUTTON_A,

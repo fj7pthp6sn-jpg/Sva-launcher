@@ -27,25 +27,25 @@ public final class ScreensaverSettingsActivity extends MotionActivity {
                 | android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-        LinearLayout shell = SettingsUi.page(this, "Screensaver", "Sva Memories · Personalize your idle screen", this::requestClose);
+        LinearLayout shell = SettingsUi.page(this, "Ekran koruyucu", "Sva Memories · Boşta ekranınızı kişiselleştirin", this::requestClose);
         page = SettingsUi.scroll(shell);
-        SettingsUi.heading(page, "Photo source");
+        SettingsUi.heading(page, "Fotoğraf kaynağı");
         source = SettingsUi.text(this, "", 14, true); page.addView(source); updateSource();
-        album = input("Separate Google Photos album (optional)", state == null
+        album = input("Ayrı Google Fotoğraflar albümü (isteğe bağlı)", state == null
                 ? prefs.getString(ScreensaverPreferences.ALBUM, "") : state.getString("album", ""));
-        SettingsUi.hint(page, "Leave empty to follow the Home album. Use an album shared with anyone who has the link.");
-        caption = input("Caption (optional)", state == null
+        SettingsUi.hint(page, "Ana Sayfa albümünü izlemek için boş bırakın. Bağlantıya sahip herkesle paylaşılan bir albüm kullanın.");
+        caption = input("Alt yazı (isteğe bağlı)", state == null
                 ? prefs.getString(ScreensaverPreferences.CAPTION, "") : state.getString("caption", ""));
         feedback = SettingsUi.text(this, "", 14, true); SettingsUi.add(page, feedback);
-        SettingsUi.add(page, SettingsUi.action(this, "Use Home album", () -> {
+        SettingsUi.add(page, SettingsUi.action(this, "Ana Sayfa albümünü kullan", () -> {
             album.setText(""); prefs.edit().remove(ScreensaverPreferences.ALBUM).apply();
-            updateSource(); feedback.setText("Screensaver now follows the Home album.");
+            updateSource(); feedback.setText("Ekran koruyucu artık Ana Sayfa albümünü izliyor.");
         }));
-        SettingsUi.add(page, SettingsUi.action(this, "Check album", this::checkAlbum));
-        SettingsUi.heading(page, "Appearance");
+        SettingsUi.add(page, SettingsUi.action(this, "Albümü kontrol et", this::checkAlbum));
+        SettingsUi.heading(page, "Görünüm");
         int atmosphere = ScreensaverPreferences.themeIndex(prefs.getString(ScreensaverPreferences.THEME, "cinema"));
         TextView atmosphereDescription = SettingsUi.text(this, ScreensaverPreferences.DESCRIPTIONS[atmosphere], 14, true);
-        SettingsUi.add(page, SettingsUi.choice(this, "Atmosphere", ScreensaverPreferences.NAMES,
+        SettingsUi.add(page, SettingsUi.choice(this, "Atmosfer", ScreensaverPreferences.NAMES,
                 atmosphere, index -> {
                     prefs.edit().putString(ScreensaverPreferences.THEME, ScreensaverPreferences.THEMES[index]).apply();
                     atmosphereDescription.setText(ScreensaverPreferences.DESCRIPTIONS[index]);
@@ -55,41 +55,41 @@ public final class ScreensaverSettingsActivity extends MotionActivity {
         String[] intervals = new String[ScreensaverPreferences.INTERVALS.length];
         int selected = 0;
         for (int i = 0; i < intervals.length; i++) {
-            intervals[i] = ScreensaverPreferences.INTERVALS[i] + " seconds";
+            intervals[i] = ScreensaverPreferences.INTERVALS[i] + " saniye";
             if (ScreensaverPreferences.INTERVALS[i] == interval) selected = i;
         }
-        SettingsUi.add(page, SettingsUi.choice(this, "Change photo", intervals, selected,
+        SettingsUi.add(page, SettingsUi.choice(this, "Fotoğrafı değiştir", intervals, selected,
                 index -> prefs.edit().putInt(ScreensaverPreferences.INTERVAL, ScreensaverPreferences.INTERVALS[index]).apply()));
-        SettingsUi.heading(page, "Overlays");
-        overlayToggle("Clock", ScreensaverPreferences.CLOCK, true);
-        overlayToggle("Weather", ScreensaverPreferences.WEATHER, false);
-        overlayToggle("Events", ScreensaverPreferences.EVENTS, false);
-        SettingsUi.hint(page, "Weather and events use your Home location and calendar.");
-        SettingsUi.heading(page, "Activation");
+        SettingsUi.heading(page, "Katmanlar");
+        overlayToggle("Saat", ScreensaverPreferences.CLOCK, true);
+        overlayToggle("Hava Durumu", ScreensaverPreferences.WEATHER, false);
+        overlayToggle("Etkinlikler", ScreensaverPreferences.EVENTS, false);
+        SettingsUi.hint(page, "Hava durumu ve etkinlikler Ana Sayfa konumunuzu ve takviminizi kullanır.");
+        SettingsUi.heading(page, "Etkinleştirme");
         String[] idleOptions = new String[ScreensaverPreferences.IDLE_MINUTES.length];
         int idle = ScreensaverPreferences.idleMinutes(prefs.getInt(ScreensaverPreferences.IDLE, 0));
         selected = 0;
         for (int i = 0; i < idleOptions.length; i++) {
             int minutes = ScreensaverPreferences.IDLE_MINUTES[i];
-            idleOptions[i] = minutes == 0 ? "Off" : minutes + (minutes == 1 ? " minute" : " minutes");
+            idleOptions[i] = minutes == 0 ? "Kapalı" : minutes + (minutes == 1 ? " dakika" : " dakika");
             if (idle == minutes) selected = i;
         }
-        SettingsUi.add(page, SettingsUi.choice(this, "Start while Sva is idle", idleOptions, selected,
+        SettingsUi.add(page, SettingsUi.choice(this, "Sva boştayken başlat", idleOptions, selected,
                 index -> prefs.edit().putInt(ScreensaverPreferences.IDLE, ScreensaverPreferences.IDLE_MINUTES[index]).apply()));
-        SettingsUi.hint(page, "Runs while Sva is open. Playback and settings stay uninterrupted.");
-        SettingsUi.add(page, SettingsUi.action(this, "Choose in Android TV settings", this::openScreensaverSettings));
-        SettingsUi.hint(page, "Choose Sva Memories in Android TV settings for a system-wide screensaver. Previously downloaded photos work offline.");
+        SettingsUi.hint(page, "Sva açıkken çalışır. Oynatma ve ayarlar kesintiye uğramaz.");
+        SettingsUi.add(page, SettingsUi.action(this, "Android TV ayarlarında seç", this::openScreensaverSettings));
+        SettingsUi.hint(page, "Sistem genelinde ekran koruyucu için Android TV ayarlarında Sva Memories’i seçin. Daha önce indirilen fotoğraflar çevrimdışı çalışır.");
         LinearLayout footer = new LinearLayout(this);
         footer.setClipChildren(false);
         footer.setClipToPadding(false);
         LinearLayout.LayoutParams footerParams = new LinearLayout.LayoutParams(-1, -2);
         footerParams.setMargins(0, dp(10), 0, dp(12));
-        Button save = SettingsUi.action(this, "Save changes", this::save);
+        Button save = SettingsUi.action(this, "Değişiklikleri kaydet", this::save);
         save.setTextColor(LiquidTheme.accent(this));
         LinearLayout.LayoutParams saveParams = new LinearLayout.LayoutParams(0, -2, 1);
         saveParams.setMargins(dp(4), dp(4), dp(6), dp(4));
         footer.addView(save, saveParams);
-        Button preview = SettingsUi.action(this, "Preview", () -> {
+        Button preview = SettingsUi.action(this, "Önizleme", () -> {
             if (save()) startActivity(new Intent(this, ScreensaverPreviewActivity.class));
         });
         LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(0, -2, 1);
@@ -110,10 +110,10 @@ public final class ScreensaverSettingsActivity extends MotionActivity {
                 || !caption.getText().toString().trim().equals(prefs.getString(ScreensaverPreferences.CAPTION, ""));
         if (!dirty) { finish(); return; }
         android.app.AlertDialog prompt = new android.app.AlertDialog.Builder(this, LiquidTheme.alertDialogTheme(this))
-                .setTitle("Save screensaver changes?")
-                .setMessage("Your album and caption have unsaved changes.")
-                .setPositiveButton("Save", (d, w) -> { if (save()) finish(); })
-                .setNegativeButton("Discard", (d, w) -> finish()).setNeutralButton("Keep editing", null).create();
+                .setTitle("Ekran koruyucu değişiklikleri kaydedilsin mi?")
+                .setMessage("Albümünüzde ve alt yazınızda kaydedilmemiş değişiklikler var.")
+                .setPositiveButton("Kaydet", (d, w) -> { if (save()) finish(); })
+                .setNegativeButton("At", (d, w) -> finish()).setNeutralButton("Düzenlemeye devam et", null).create();
         Motion.dialog(prompt); prompt.show();
     }
 
@@ -147,42 +147,42 @@ public final class ScreensaverSettingsActivity extends MotionActivity {
         try {
             startActivity(new Intent(Settings.ACTION_SETTINGS));
         } catch (Exception unavailable) {
-            feedback.setText("This TV restricts system screensaver settings. Use Start while Sva is idle above, or open the TV's Screensaver / Ambient mode settings.");
+            feedback.setText("Bu TV sistem ekran koruyucu ayarlarını kısıtlıyor. Yukarıdaki “Sva boştayken başlat” seçeneğini kullanın veya TV’nin Ekran koruyucu / Ortam modu ayarlarını açın.");
         }
     }
     private boolean save() {
         String value = album.getText().toString().trim();
-        if (!ScreensaverPreferences.validAlbum(value)) { feedback.setText("Enter a Google Photos shared album link, or leave empty to use Home."); return false; }
+        if (!ScreensaverPreferences.validAlbum(value)) { feedback.setText("Paylaşılan bir Google Fotoğraflar albümü bağlantısı girin veya Ana Sayfa’yı kullanmak için boş bırakın."); return false; }
         prefs.edit().putString(ScreensaverPreferences.ALBUM, value)
                 .putString(ScreensaverPreferences.CAPTION, caption.getText().toString().trim()).apply();
-        updateSource(); feedback.setText("Saved."); return true;
+        updateSource(); feedback.setText("Kaydedildi."); return true;
     }
     private void checkAlbum() {
         if (!save()) return;
         String selected = ScreensaverPreferences.album(prefs);
-        if (selected.isEmpty()) { feedback.setText("Add an album on Home or paste a separate album above."); return; }
-        feedback.setText("Checking shared album…");
+        if (selected.isEmpty()) { feedback.setText("Ana Sayfa’da bir albüm ekleyin veya yukarıya ayrı bir albüm yapıştırın."); return; }
+        feedback.setText("Paylaşılan albüm kontrol ediliyor…");
         lifecycleWork.execute(worker, () -> {
             String result;
-            try { result = "Album ready · " + new ScreensaverPhotoRepository(this).refresh(selected, true).size() + " photos"; }
-            catch (Exception e) { result = "Could not read album. Check the link, sharing settings and connection."; }
+            try { result = "Albüm hazır · " + new ScreensaverPhotoRepository(this).refresh(selected, true).size() + " fotoğraf"; }
+            catch (Exception e) { result = "Albüm okunamadı. Bağlantıyı, paylaşım ayarlarını ve internet bağlantısını kontrol edin."; }
             String message = result;
             lifecycleWork.post(() -> feedback.setText(message));
         });
     }
     private void updateSource() {
         boolean home = prefs.getString(ScreensaverPreferences.ALBUM, "").isEmpty();
-        source.setText("Photo source · " + (home ? "Home album" : "Separate album")
-                + (ScreensaverPreferences.album(prefs).isEmpty() ? " · no link configured yet" : ""));
+        source.setText("Fotoğraf kaynağı · " + (home ? "Ana Sayfa albümü" : "Ayrı albüm")
+                + (ScreensaverPreferences.album(prefs).isEmpty() ? " · henüz bağlantı ayarlanmadı" : ""));
     }
     private int dp(int n) { return LiquidTheme.dp(this, n); }
     private EditText input(String label, String value) {
         SettingsUi.hint(page, label);
         EditText edit = new EditText(this); edit.setText(value); edit.setSingleLine(true);
         edit.setSelectAllOnFocus(true);
-        edit.setInputType(android.text.InputType.TYPE_CLASS_TEXT | (label.startsWith("Separate")
+        edit.setInputType(android.text.InputType.TYPE_CLASS_TEXT | (label.startsWith("Ayrı")
                 ? android.text.InputType.TYPE_TEXT_VARIATION_URI : android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES));
-        edit.setHint(label.startsWith("Separate") ? "https://photos.app.goo.gl/…" : "Add a personal caption");
+        edit.setHint(label.startsWith("Ayrı") ? "https://photos.app.goo.gl/…" : "Kişisel bir alt yazı ekleyin");
         SettingsUi.styleInput(edit, false); SettingsUi.add(page, edit); return edit;
     }
     @Override protected void onDestroy() { lifecycleWork.close(); worker.shutdownNow(); super.onDestroy(); }

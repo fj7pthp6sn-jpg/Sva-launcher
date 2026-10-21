@@ -140,9 +140,9 @@ final class GuideReminders {
         Reminder shown = due;
         String time = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(shown.startMs));
         alert = new AlertDialog.Builder(activity)
-                .setTitle("Starting soon · " + shown.title)
-                .setMessage(shown.channelName + " starts at " + time + ".")
-                .setPositiveButton("Watch", (dialog, which) -> {
+                .setTitle("Birazdan başlıyor · " + shown.title)
+                .setMessage(shown.channelName + " başlangıç: " + time + ".")
+                .setPositiveButton("İzle", (dialog, which) -> {
                     Intent intent = new Intent(activity, MainActivity.class);
                     intent.setAction(MainActivity.ACTION_WATCH_REMINDER);
                     intent.putExtra(MainActivity.EXTRA_REMINDER_CHANNEL_KEY, shown.channelKey);
@@ -150,7 +150,7 @@ final class GuideReminders {
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     activity.startActivity(intent);
                 })
-                .setNegativeButton("Dismiss", null)
+                .setNegativeButton("Kapat", null)
                 .create();
         alert.setOnDismissListener(dialog -> { alert = null; schedule(); });
         Motion.dialog(alert); alert.show();

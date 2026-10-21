@@ -70,12 +70,12 @@ final class LauncherBackup {
                         SharedPreferences iptv, IptvRepository repository) throws Exception {
         if (backup == null || !"sva-launcher-backup".equals(backup.optString("format"))
                 || backup.optInt("version", -1) != VERSION) {
-            throw new IllegalArgumentException("This backup file is not supported.");
+            throw new IllegalArgumentException("Bu yedek dosyası desteklenmiyor.");
         }
         JSONObject launcherValues = backup.optJSONObject("launcher");
         JSONObject iptvValues = backup.optJSONObject("iptv");
         if (launcherValues == null || iptvValues == null) {
-            throw new IllegalArgumentException("The backup file is missing launcher or IPTV data.");
+            throw new IllegalArgumentException("Yedek dosyasında launcher veya IPTV verisi eksik.");
         }
 
         Map<String, Object> restoredLauncher = decodePreferences(launcherValues);
@@ -104,12 +104,12 @@ final class LauncherBackup {
             } else if (value instanceof Set) {
                 JSONArray strings = new JSONArray();
                 for (Object item : (Set<?>) value) {
-                    if (!(item instanceof String)) throw new IllegalArgumentException("Unsupported set in preferences.");
+                    if (!(item instanceof String)) throw new IllegalArgumentException("Tercihlerde desteklenmeyen küme.");
                     strings.put(item);
                 }
                 typed.put("type", "string-set").put("value", strings);
             } else {
-                throw new IllegalArgumentException("Unsupported preference value: " + entry.getKey());
+                throw new IllegalArgumentException("Desteklenmeyen tercih değeri: " + entry.getKey());
             }
             result.put(entry.getKey(), typed);
         }
@@ -124,12 +124,12 @@ final class LauncherBackup {
             if (EXCLUDED_PREFERENCES.contains(key)) continue;
             JSONObject typed = encoded.optJSONObject(key);
             if (key.trim().isEmpty() || typed == null || !typed.has("value")) {
-                throw new IllegalArgumentException("The backup contains an invalid preference.");
+                throw new IllegalArgumentException("Yedek geçersiz bir tercih içeriyor.");
             }
             String type = typed.optString("type");
             String expected = EXPECTED_TYPES.get(key);
             if (expected != null && !expected.equals(type))
-                throw new IllegalArgumentException("The backup contains an incompatible preference type.");
+                throw new IllegalArgumentException("Yedek uyumsuz bir tercih türü içeriyor.");
             Object value;
             switch (type) {
                 case "string": value = typed.getString("value"); break;
@@ -139,7 +139,7 @@ final class LauncherBackup {
                 case "float":
                     float number = (float) typed.getDouble("value");
                     if (Float.isNaN(number) || Float.isInfinite(number))
-                        throw new IllegalArgumentException("The backup contains an invalid number.");
+                        throw new IllegalArgumentException("Yedek geçersiz bir sayı içeriyor.");
                     value = number; break;
                 case "string-set":
                     JSONArray array = typed.getJSONArray("value");
@@ -147,7 +147,7 @@ final class LauncherBackup {
                     for (int i = 0; i < array.length(); i++) strings.add(array.getString(i));
                     value = strings;
                     break;
-                default: throw new IllegalArgumentException("The backup contains an unknown preference type.");
+                default: throw new IllegalArgumentException("Yedek bilinmeyen bir tercih türü içeriyor.");
             }
             result.put(key, value);
         }
@@ -168,6 +168,6 @@ final class LauncherBackup {
                 editor.putStringSet(entry.getKey(), strings);
             }
         }
-        if (!editor.commit()) throw new IllegalStateException("Could not save restored settings.");
+        if (!editor.commit()) throw new IllegalStateException("Geri yüklenen ayarlar kaydedilemedi.");
     }
 }

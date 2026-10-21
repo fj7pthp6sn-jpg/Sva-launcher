@@ -307,7 +307,7 @@ final class IptvRepository {
             }
             return result;
         } catch (Exception error) {
-            Log.w("IptvRepository", "Could not read channel cache " + fileName, error);
+            Log.w("IptvRepository", "Kanal önbelleği okunamadı " + fileName, error);
             return null;
         }
     }
@@ -321,14 +321,14 @@ final class IptvRepository {
     }
 
     void restoreCachedChannels(JSONArray array, Runnable onRestored) throws Exception {
-        if (array == null || array.length() > 50000) throw new IllegalArgumentException("Backup contains too many channels.");
+        if (array == null || array.length() > 50000) throw new IllegalArgumentException("Yedek çok fazla kanal içeriyor.");
         ArrayList<Channel> restored = new ArrayList<>(array.length());
         for (int i = 0; i < array.length(); i++) {
             JSONObject value = array.optJSONObject(i);
-            if (value == null) throw new IllegalArgumentException("Backup contains an invalid channel entry.");
+            if (value == null) throw new IllegalArgumentException("Yedek geçersiz bir kanal kaydı içeriyor.");
             String name = value.optString("name", "").trim();
             String url = value.optString("url", "").trim();
-            if (name.isEmpty() || url.isEmpty()) throw new IllegalArgumentException("Backup contains a channel without a name or stream URL.");
+            if (name.isEmpty() || url.isEmpty()) throw new IllegalArgumentException("Yedek, adı veya yayın adresi olmayan bir kanal içeriyor.");
             Map<String, String> headers = new LinkedHashMap<>();
             JSONObject headerObject = value.optJSONObject("drmHeaders");
             if (headerObject != null) {
@@ -365,7 +365,7 @@ final class IptvRepository {
                 try {
                     String playlist = playlistUrl();
                     List<String> sources = sourceUrls(playlist);
-                    if (sources.isEmpty()) throw new IllegalStateException("Add one or more M3U playlist URLs in Settings.");
+                    if (sources.isEmpty()) throw new IllegalStateException("Ayarlar’dan bir veya daha fazla M3U liste adresi ekleyin.");
                     prefs.edit().putLong("channelsAttempted", System.currentTimeMillis()).apply();
                     Map<String, Channel> combined = new LinkedHashMap<>();
                     List<String> failures = new ArrayList<>();
@@ -373,26 +373,26 @@ final class IptvRepository {
                         try {
                             List<Channel> loadedSource = downloadPlaylist(sources.get(i));
                             if (loadedSource.isEmpty()) {
-                                failures.add("Playlist " + (i + 1) + " was empty");
+                                failures.add("Liste " + (i + 1) + " boştu");
                             } else {
                                 for (Channel channel : loadedSource) {
                                     combined.putIfAbsent(cacheIdentity(channel), channel);
                                 }
                             }
                         } catch (Exception sourceError) {
-                            failures.add("Playlist " + (i + 1) + ": " + safeMessage(sourceError));
+                            failures.add("Liste " + (i + 1) + ": " + safeMessage(sourceError));
                         }
                     }
                     List<Channel> channels = new ArrayList<>(combined.values());
                     if (channels.isEmpty()) {
                         loaded = cachedChannels();
                         message = loaded.isEmpty()
-                                ? (failures.isEmpty() ? "No channels found in the playlists."
+                                ? (failures.isEmpty() ? "Listelerde kanal bulunamadı."
                                 : String.join("; ", failures))
-                                : "No channels loaded. Keeping saved channels. " + String.join("; ", failures);
+                                : "Kanal yüklenemedi. Kayıtlı kanallar korunuyor. " + String.join("; ", failures);
                     } else if (!playlist.equals(playlistUrl())) {
                         loaded = cachedChannels();
-                        message = "Playlist sources changed during refresh. Refresh channels again.";
+                        message = "Liste kaynakları yenileme sırasında değişti. Kanalları yeniden yenileyin.";
                     } else {
                         preserveGuideData(channels, cachedChannels());
                         saveCache(channels);
@@ -402,14 +402,14 @@ final class IptvRepository {
                                 .putString("channelsCacheSource", playlist).apply();
                         loaded = channels;
                         message = failures.isEmpty()
-                                ? "Channels updated from " + sources.size() + (sources.size() == 1 ? " playlist." : " playlists.")
-                                : "Loaded " + channels.size() + " channels; " + String.join("; ", failures) + ".";
+                                ? "Kanallar güncellendi · " + sources.size() + (sources.size() == 1 ? " liste." : " liste.")
+                                : "Yüklendi: " + channels.size() + " kanal; " + String.join("; ", failures) + ".";
                     }
                 } catch (Exception e) {
                     loaded = cachedChannels();
                     message = loaded.isEmpty()
-                            ? "Could not load playlist: " + safeMessage(e)
-                            : "Showing saved channels. Channel refresh failed: " + safeMessage(e);
+                            ? "Liste yüklenemedi: " + safeMessage(e)
+                            : "Kayıtlı kanallar gösteriliyor. Kanal yenileme başarısız: " + safeMessage(e);
                 }
                 callback.onLoaded(loaded, message);
             }
@@ -425,8 +425,8 @@ final class IptvRepository {
                 String guide = guideUrl();
                 try {
                     List<String> sources = sourceUrls(guide);
-                    if (sources.isEmpty()) throw new IllegalStateException("Add and save one or more programme guide URLs in Settings.");
-                    if (cached.isEmpty()) throw new IllegalStateException("Refresh channels first to load the programme guide.");
+                    if (sources.isEmpty()) throw new IllegalStateException("Ayarlar’dan bir veya daha fazla program rehberi adresi ekleyip kaydedin.");
+                    if (cached.isEmpty()) throw new IllegalStateException("Program rehberini yüklemek için önce kanalları yenileyin.");
                     prefs.edit().putLong("guideAttempted", System.currentTimeMillis()).apply();
                     List<Channel> updated = copyChannels(cached);
                     clearGuideData(updated);
@@ -440,17 +440,17 @@ final class IptvRepository {
                             mergeGuideData(sourceChannels, updated, System.currentTimeMillis());
                             succeeded++;
                         } catch (Exception sourceError) {
-                            failures.add("Guide " + (i + 1) + ": " + safeMessage(sourceError));
+                            failures.add("Rehber " + (i + 1) + ": " + safeMessage(sourceError));
                         }
                     }
                     if (succeeded == 0) {
                         throw new IllegalStateException(failures.isEmpty()
-                                ? "No programme guide sources were loaded." : String.join("; ", failures));
+                                ? "Hiçbir program rehberi kaynağı yüklenemedi." : String.join("; ", failures));
                     }
                     refreshProgrammeDisplay(updated, System.currentTimeMillis());
                     if (!guide.equals(guideUrl())) {
                         prefs.edit().remove("guideUpdated").remove("guideAttempted").apply();
-                        throw new IllegalStateException("Programme guide sources changed during refresh. Refresh the guide again.");
+                        throw new IllegalStateException("Program rehberi kaynakları yenileme sırasında değişti. Rehberi yeniden yenileyin.");
                     }
                     saveCache(updated);
                     long completedAt = System.currentTimeMillis();
@@ -458,18 +458,18 @@ final class IptvRepository {
                             .putString("guideCacheSource", guide).apply();
                     loaded = updated;
                     message = failures.isEmpty()
-                            ? "Programme guide updated from " + succeeded + (succeeded == 1 ? " source." : " sources.")
-                            : "Guide updated from " + succeeded + " of " + sources.size() + " sources. "
+                            ? "Program rehberi güncellendi · " + succeeded + (succeeded == 1 ? " kaynak." : " kaynak.")
+                            : "Rehber güncellendi · " + succeeded + " / " + sources.size() + " kaynak. "
                             + String.join("; ", failures) + ".";
                 } catch (Exception e) {
                     loaded = cacheOrFallback(cachedChannels(), cached);
                     if (!guide.equals(guideUrl())) {
                         prefs.edit().remove("guideUpdated").remove("guideAttempted").apply();
-                        message = "Programme guide sources changed during refresh. Refresh the guide again.";
+                        message = "Program rehberi kaynakları yenileme sırasında değişti. Rehberi yeniden yenileyin.";
                     } else {
                         message = loaded.isEmpty()
                                 ? safeMessage(e)
-                                : "Showing saved channels. Guide refresh failed: " + safeMessage(e);
+                                : "Kayıtlı kanallar gösteriliyor. Rehber yenileme başarısız: " + safeMessage(e);
                     }
                 }
                 callback.onLoaded(loaded, message);
@@ -554,7 +554,7 @@ final class IptvRepository {
         HttpURLConnection connection = openConnection(address);
         try {
             int length = connection.getContentLength();
-            if (length > MAX_PLAYLIST_BYTES) throw new IllegalStateException("Playlist is larger than 24 MB.");
+            if (length > MAX_PLAYLIST_BYTES) throw new IllegalStateException("Liste 24 MB’tan büyük.");
             try (InputStream stream = new ByteLimitInputStream(connection.getInputStream(), MAX_PLAYLIST_BYTES);
                  BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
                 return parseLines(reader);
@@ -574,12 +574,12 @@ final class IptvRepository {
         while ((line = reader.readLine()) != null) {
             line = line.trim();
             if (line.startsWith("#EXTINF")) {
-                if (name != null) throw new IllegalArgumentException("Playlist ended a channel entry before its stream URL.");
+                if (name != null) throw new IllegalArgumentException("Liste, bir kanal kaydını yayın adresinden önce bitirdi.");
                 int comma = extinfTitleSeparator(line);
                 name = comma >= 0 ? line.substring(comma + 1).trim() : attribute(line, "tvg-name");
                 id = attribute(line, "tvg-id"); group = attribute(line, "group-title"); logo = attribute(line, "tvg-logo");
                 drmType = ""; drmKey = ""; mime = ""; vlcHeaders.clear(); kodiHeaders.clear();
-                if (name == null || name.isEmpty()) name = "Channel";
+                if (name == null || name.isEmpty()) name = "Kanal";
             } else if (line.startsWith("#KODIPROP:") && name != null) {
                 int split = line.indexOf('=', 10);
                 if (split > 0) {
@@ -622,7 +622,7 @@ final class IptvRepository {
                 vlcHeaders.clear(); kodiHeaders.clear();
             }
         }
-        if (name != null) throw new IllegalArgumentException("Playlist ended before the final channel stream URL.");
+        if (name != null) throw new IllegalArgumentException("Liste, son kanalın yayın adresinden önce bitti.");
         return channels;
     }
 
@@ -651,7 +651,7 @@ final class IptvRepository {
         }
 
         private IllegalStateException tooLarge() {
-            return new IllegalStateException("Source exceeds the " + (limit / (1024 * 1024)) + " MB size limit.");
+            return new IllegalStateException("Kaynak şu sınırı aşıyor: " + (limit / (1024 * 1024)) + " MB.");
         }
     }
 
@@ -721,7 +721,7 @@ final class IptvRepository {
                     && contentType.toLowerCase(Locale.US).contains("json"));
             if (json) {
                 int length = connection.getContentLength();
-                if (length > MAX_JSON_GUIDE_BYTES) throw new IllegalStateException("JSON guide is larger than 16 MB.");
+                if (length > MAX_JSON_GUIDE_BYTES) throw new IllegalStateException("JSON rehberi 16 MB’tan büyük.");
                 applyJsonGuide(channels, new JSONArray(readGuideJson(raw)), System.currentTimeMillis());
             } else {
                 attachXmlGuide(channels, guideStream(raw));
@@ -735,7 +735,7 @@ final class IptvRepository {
         int count;
         while ((count = input.read(buffer)) != -1) {
             if (output.size() + count > MAX_JSON_GUIDE_BYTES) {
-                throw new IllegalStateException("JSON guide is larger than 16 MB.");
+                throw new IllegalStateException("JSON rehberi 16 MB’tan büyük.");
             }
             output.write(buffer, 0, count);
         }
@@ -776,32 +776,32 @@ final class IptvRepository {
                 title = null;
             }
         }
-        if (matchedProgrammes == 0) throw new IllegalArgumentException("Guide contains no valid programmes matching playlist tvg-id values.");
+        if (matchedProgrammes == 0) throw new IllegalArgumentException("Rehberde, liste tvg-id değerleriyle eşleşen geçerli program yok.");
         refreshProgrammeDisplay(working, now);
-        if (!hasCurrentOrUpcomingProgramme(working)) throw new IllegalArgumentException("Guide has no current or upcoming programmes.");
+        if (!hasCurrentOrUpcomingProgramme(working)) throw new IllegalArgumentException("Rehberde güncel veya yaklaşan program yok.");
         copyGuideData(working, channels);
     }
 
     static void applyJsonGuide(List<Channel> channels, JSONArray feed, long now) throws Exception {
-        if (feed == null || feed.length() == 0) throw new IllegalArgumentException("JSON guide contains no channels.");
+        if (feed == null || feed.length() == 0) throw new IllegalArgumentException("JSON rehberinde kanal yok.");
         GuideAccumulator accumulator = new GuideAccumulator(channels, now);
         for (int i = 0; i < feed.length(); i++) {
             JSONObject item = feed.optJSONObject(i);
             if (item == null) continue;
             accumulator.addJson(item);
         }
-        accumulator.finish("JSON guide contains no channel entries.",
-                "JSON guide contains no valid programmes matching playlist channel IDs or names.");
+        accumulator.finish("JSON rehberinde kanal kaydı yok.",
+                "JSON rehberinde, liste kanal kimlikleri veya adlarıyla eşleşen geçerli program yok.");
     }
 
     static void applyJsonGuideEntries(List<Channel> channels, List<Map<String, Object>> feed, long now) {
-        if (feed == null || feed.isEmpty()) throw new IllegalArgumentException("JSON guide contains no channel entries.");
+        if (feed == null || feed.isEmpty()) throw new IllegalArgumentException("JSON rehberinde kanal kaydı yok.");
         GuideAccumulator accumulator = new GuideAccumulator(channels, now);
         for (Map<String, Object> item : feed) {
             accumulator.addMap(item);
         }
-        accumulator.finish("JSON guide contains no channel entries.",
-                "JSON guide contains no valid programmes matching playlist channel IDs or names.");
+        accumulator.finish("JSON rehberinde kanal kaydı yok.",
+                "JSON rehberinde, liste kanal kimlikleri veya adlarıyla eşleşen geçerli program yok.");
     }
 
     private static final class GuideAccumulator {
@@ -877,7 +877,7 @@ final class IptvRepository {
             if (channelEntries == 0) throw new IllegalArgumentException(noEntriesMessage);
             if (matchedProgrammes == 0) throw new IllegalArgumentException(noMatchesMessage);
             refreshProgrammeDisplay(working, now);
-            if (!hasCurrentOrUpcomingProgramme(working)) throw new IllegalArgumentException("JSON guide has no current or upcoming programmes.");
+            if (!hasCurrentOrUpcomingProgramme(working)) throw new IllegalArgumentException("JSON rehberinde güncel veya yaklaşan program yok.");
             copyGuideData(working, original);
         }
     }
