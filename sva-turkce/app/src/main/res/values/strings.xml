@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Sva Launcher</string>
+    <string name="launcher_override_service_label">Sva Launcher</string>
+    <string name="launcher_override_service_description">TV kendi ana ekranını açtığında Sva Launcher’ı açar.</string>
+    <string name="screensaver_name">Sva Memories</string>
+</resources>
